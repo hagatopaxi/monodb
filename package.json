@@ -1,0 +1,18 @@
+{
+  "name": "monolite",
+  "version": "1.0.0",
+  "description": "Very lite and fast SGBD for document orient database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "document",
+    "database"
+  ],
+  "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwlgr.space)",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^6.1.4"
+  }
+}
