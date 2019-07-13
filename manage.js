@@ -22,7 +22,7 @@ var exec = {
     test: function(args) {
         let testPaths = [];
         if (!args.length) {
-            testPaths.push('./*/test/test*.js');
+            testPaths.push('./test/test*.js');
         } else {
             for (var i = 0; i < args.length; i++) {
                 if (args[i].slice(args[i].length - 3) === '.js') {
