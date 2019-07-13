@@ -5,7 +5,6 @@ const fs = require('fs');
 module.exports = class Collection {
     constructor(name) {
         this._name = name;
-        console.log('collection OK' + this.name);
     }
 
     /**
@@ -98,7 +97,7 @@ module.exports = class Collection {
         // }
     }
 
-    delete(id, cb) {
+    remove(id, cb) {
         // if (typeof id === 'string') {
         //     let path = this.link + id + this.ext;
         //
