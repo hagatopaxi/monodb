@@ -39,53 +39,6 @@ var exec = {
                 exit: true,
                 timeout: 10000
             }));
-    },
-    /**
-     * Permet de remplir la base de donnée des valeurs contenus dans seed.js
-     * @param {array}  args list des collections à populate dans la bd
-     */
-    populate: function(args) {
-        let seed = require('./seed.js');
-        let mongoClient = require('mongodb').MongoClient;
-        let mongoConfig = require('./config/mongo.json');
-
-        let collections;
-
-        if (args.length !== 0) {
-            collections = args;
-        } else {
-            collections = Object.keys(seed.base);
-        }
-
-        mongoClient.connect(mongoConfig.URL_MONGO, function(error, mongoMgr) {
-            if (error) throw error;
-
-            for (let i = 0; i < collections.length; i++) {
-                var collection = collections[i];
-                var db = mongoMgr.db(mongoConfig.DATABASE_NAME);
-                db.collection(collection).deleteMany({});
-                db.collection(collection).insertMany(seed.base[collection], function(collection, error) {
-                    if (error) throw error;
-                    console.log(`INSERT ALL : ${collection}`);
-                }.bind(null, collection));
-            }
-
-            mongoMgr.close();
-        });
-    },
-    /**
-     * Affiche la liste des erreurs d'écritures dans les scripts
-     * @param  {[type]} args [description]
-     * @return {[type]}      [description]
-     */
-    lint: function() {
-        gulp.src(['./*/test/test*.js', './*.js', './*/*.js']).pipe(jshint({
-            node: true,
-            mocha: true,
-            esversion: 6,
-            unused: true,
-            devel: true
-        })).pipe(jshint.reporter('default'));
     }
 };
 
