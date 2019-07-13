@@ -4,15 +4,19 @@
   "description": "Very lite and fast SGBD for document orient database",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "keywords": [
     "document",
     "database"
   ],
+  "repository": "https://bitbucket.org/gleger/monolite/",
   "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwlgr.space)",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^6.1.4"
+    "mocha": "^6.1.4",
+    "gulp-mocha": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-nodemon": "^2.4.2"
   }
 }
