@@ -11,7 +11,6 @@ module.exports = class Database {
         try {
             fs.accessSync(this.dbPath, fs.constants.F_OK);
         } catch (err) {
-            console.log(err);
             if (err.code === 'ENOENT') {
                 fs.mkdirSync(dbPath);
             } else {
@@ -29,5 +28,9 @@ module.exports = class Database {
             }
         }
         this.status = true;
+    }
+
+    get collectionNames() {
+        return Object.keys(this);
     }
 }
