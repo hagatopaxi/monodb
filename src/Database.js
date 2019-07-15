@@ -6,7 +6,7 @@ const Collection = require('./Collection');
 
 module.exports = class Database {
     constructor(dbName) {
-        this.dbName;
+        this.dbName = dbName;
         this.dbPath = path.resolve(this.dbName);
         this.ext = '.json';
 
@@ -14,7 +14,7 @@ module.exports = class Database {
             fs.accessSync(this.dbPath, fs.constants.F_OK);
         } catch (err) {
             if (err.code === 'ENOENT') {
-                fs.mkdirSync(dbPath);
+                fs.mkdirSync(this.dbPath);
             } else {
                 throw err;
             }
@@ -32,8 +32,8 @@ module.exports = class Database {
         this.status = true;
     }
 
-    createCollection(colName, cb) {
-        fs.mkdir(this.dbPath + colName, cb);
+    async createCollection(colName) {
+        return await fs.mkdir(this.dbPath + colName);
     }
 
     get collectionNames() {

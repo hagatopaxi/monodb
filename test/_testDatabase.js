@@ -38,63 +38,63 @@ describe('Database', function() {
         //     });
         // });
 
-        it('database exist', function(done) {
-            let db_name = 'db_name';
-            createDatabaseFolder(db_name, function(err) {
-                console.log(err);
-                assert(!err);
-
-                let db = new monolite(db_name);
-
-                assert(db.status);
-                console.log(db);
-                assert(db.collection1);
-                assert(db.collection2);
-                assert(db.collection3);
-
-                deleteFolderRec(db_name, function(err) {
-                    assert(!err);
-                    done();
-                });
-            });
-        });
-
-        // it('path is file, not a folder', function(done) {
-        //     let file_path = __dirname + 'fakedb.json';
-        //     fs.writeFile(file_path, 'I am Fake DB', 'utf-8', function(err) {
-        //         try {
-        //             let db = new monolite(file_path);
-        //         } catch (err) {
-        //             fs.unlink(file_path, done);
-        //             return;
-        //         }
-        //         assert.fail();
+        // it('database exist', function(done) {
+        //     var db_name = 'db_name';
+        //     createDatabaseFolder(db_name, function(err) {
+        //         console.log(err);
+        //         assert(!err);
+        //
+        //         let db = new monolite('db_name');
+        //
+        //         assert(db.status);
+        //         console.log(db);
+        //         assert(db.collection1);
+        //         assert(db.collection2);
+        //         assert(db.collection3);
+        //
+        //         deleteFolderRec(db_name, function(err) {
+        //             assert(!err);
+        //             done();
+        //         });
         //     });
-        // });
     });
 
-    describe('createCollection', function() {
-        it('crete collection simply'
-            // , function(done) {
-            //     let db_name = 'db_name';
-            //     createDatabaseFolder(db_name, function() {
-            //         done();
-            //     });
-            // }
-        );
-    });
+    // it('path is file, not a folder', function(done) {
+    //     let file_path = __dirname + 'fakedb.json';
+    //     fs.writeFile(file_path, 'I am Fake DB', 'utf-8', function(err) {
+    //         try {
+    //             let db = new monolite(file_path);
+    //         } catch (err) {
+    //             fs.unlink(file_path, done);
+    //             return;
+    //         }
+    //         assert.fail();
+    //     });
+    // });
+});
 
-    describe('compress', function() {
+describe('createCollection', function() {
+    it('crete collection simply'
+        // , function(done) {
+        //     let db_name = 'db_name';
+        //     createDatabaseFolder(db_name, function() {
+        //         done();
+        //     });
+        // }
+    );
+});
 
-    });
+describe('compress', function() {
 
-    describe('depress', function() {
+});
 
-    });
+describe('depress', function() {
+
+});
 });
 
 function createDatabaseFolder(db_name, cb) {
-    db_name = __dirname + '/' + db_name;
+    db_name = __dirname + '/../' + db_name;
     let col1_name = '/collection1';
     let col2_name = '/collection2';
     let col3_name = '/collection3';
@@ -114,6 +114,6 @@ function createDatabaseFolder(db_name, cb) {
 }
 
 function deleteFolderRec(root, cb) {
-    exec('rm -Rf ' + __dirname + '/' + root);
+    exec('rm -Rf ' + __dirname + '/../' + root);
     cb();
 }
