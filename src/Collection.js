@@ -5,6 +5,16 @@ const fs = require('fs');
 module.exports = class Collection {
     constructor(name) {
         this._name = name;
+
+        try {
+            fs.accessSync(this.dbPath, fs.constants.F_OK);
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                fs.mkdirSync(dbPath);
+            } else {
+                throw err;
+            }
+        }
     }
 
     /**
@@ -12,18 +22,18 @@ module.exports = class Collection {
      */
     add(object, cb) {
         // // daiNote.create(new Note(req.body.title, req.body.type, ''));
-        // if (typeof object === 'object') {
-        //     object.id = object.id ? object.id : this.getNewId();
-        //
-        //     let path = this.link + object.id + this.ext;
-        //
-        //     fs.writeFile(path, JSON.stringify(object), function(err) {
-        //         if (err) return cb(err);
-        //         cb(null, object);
-        //     });
-        // } else {
-        //     cb(new Error('ArgumentError: `object` argument is ' + object + ' must be an object'));
-        // }
+        if (typeof object === 'object') {
+            object.id = object.id ? object.id : this.getNewId();
+
+            let path = this.link + object.id + this.ext;
+
+            fs.writeFile(path, JSON.stringify(object), function(err) {
+                if (err) return cb(err);
+                cb(null, object);
+            });
+        } else {
+            cb(new Error('ArgumentError: `object` argument is ' + object + ' must be an object'));
+        }
     }
 
     /**

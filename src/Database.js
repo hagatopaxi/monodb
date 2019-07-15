@@ -1,11 +1,13 @@
 "use strict";
 
 const fs = require('fs');
+const path = require('path');
 const Collection = require('./Collection');
 
 module.exports = class Database {
-    constructor(dbPath) {
-        this.dbPath = dbPath[dbPath.lenght - 1] === '/' ? dbPath : dbPath + '/';
+    constructor(dbName) {
+        this.dbName;
+        this.dbPath = path.resolve(this.dbName);
         this.ext = '.json';
 
         try {
@@ -28,6 +30,10 @@ module.exports = class Database {
             }
         }
         this.status = true;
+    }
+
+    createCollection(colName, cb) {
+        fs.mkdir(this.dbPath + colName, cb);
     }
 
     get collectionNames() {

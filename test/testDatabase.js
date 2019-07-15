@@ -27,57 +27,61 @@ describe('Database', function() {
         //     done();
         // });
 
-        it('database does not exist', function(done) {
-            let db_name = __dirname + '/mldb';
-            let db = new monolite(db_name);
-
-            fs.access(db_name, function(err) {
-                fs.rmdir(db_name, function(err) {
-                    done(err);
-                });
-            });
-        });
+        // it('database does not exist', function(done) {
+        //     let db_name = __dirname + '/mldb';
+        //     let db = new monolite(db_name);
+        //
+        //     fs.access(db_name, function(err) {
+        //         fs.rmdir(db_name, function(err) {
+        //             done(err);
+        //         });
+        //     });
+        // });
 
         it('database exist', function(done) {
-            let db_name = __dirname + '/mldb';
-            let col1_name = '/collection1';
-            let col2_name = '/collection2';
-            let col3_name = '/collection3';
-            fs.mkdirSync(db_name);
-            fs.mkdirSync(db_name + col1_name);
-            fs.mkdirSync(db_name + col2_name);
-            fs.mkdirSync(db_name + col3_name);
+            let db_name = 'db_name';
+            createDatabaseFolder(db_name, function(err) {
+                console.log(err);
+                assert(!err);
 
-            let db = new monolite(db_name);
+                let db = new monolite(db_name);
 
-            assert(db.status);
-            assert(db.collection1);
-            assert(db.collection2);
-            assert(db.collection3);
+                assert(db.status);
+                console.log(db);
+                assert(db.collection1);
+                assert(db.collection2);
+                assert(db.collection3);
 
-            fs.rmdir(db_name + col1_name, function(err1) {
-                fs.rmdir(db_name + col3_name, function(err2) {
-                    fs.rmdir(db_name + col2_name, function(err3) {
-                        fs.rmdir(db_name, function(err4) {
-                            done(err1 || err2 || err3 || err4);
-                        });
-                    });
+                deleteFolderRec(db_name, function(err) {
+                    assert(!err);
+                    done();
                 });
             });
         });
 
-        it('path is file, not a folder', function(done) {
-            let file_path = __dirname + 'fakedb.json';
-            fs.writeFile(file_path, 'I am Fake DB', 'utf-8', function(err) {
-                try {
-                    let db = new monolite(file_path);
-                } catch (err) {
-                    fs.unlink(file_path, done);
-                    return;
-                }
-                assert.fail();
-            });
-        });
+        // it('path is file, not a folder', function(done) {
+        //     let file_path = __dirname + 'fakedb.json';
+        //     fs.writeFile(file_path, 'I am Fake DB', 'utf-8', function(err) {
+        //         try {
+        //             let db = new monolite(file_path);
+        //         } catch (err) {
+        //             fs.unlink(file_path, done);
+        //             return;
+        //         }
+        //         assert.fail();
+        //     });
+        // });
+    });
+
+    describe('createCollection', function() {
+        it('crete collection simply'
+            // , function(done) {
+            //     let db_name = 'db_name';
+            //     createDatabaseFolder(db_name, function() {
+            //         done();
+            //     });
+            // }
+        );
     });
 
     describe('compress', function() {
@@ -88,3 +92,28 @@ describe('Database', function() {
 
     });
 });
+
+function createDatabaseFolder(db_name, cb) {
+    db_name = __dirname + '/' + db_name;
+    let col1_name = '/collection1';
+    let col2_name = '/collection2';
+    let col3_name = '/collection3';
+    fs.mkdir(db_name, function(err1) {
+        assert(!err1)
+        fs.mkdir(db_name + col1_name, function(err2) {
+            assert(!err2)
+            fs.mkdir(db_name + col2_name, function(err3) {
+                assert(!err3)
+                fs.mkdir(db_name + col3_name, function(err4) {
+                    assert(!err4)
+                    cb(err1 || err2 || err3 || err4);
+                });
+            });
+        });
+    });
+}
+
+function deleteFolderRec(root, cb) {
+    exec('rm -Rf ' + __dirname + '/' + root);
+    cb();
+}
