@@ -1,40 +1,34 @@
 "use strict";
 
 const fs = require('fs');
+const path = require('path');
 
 module.exports = class Collection {
-    // constructor(name) {
-    //     this._name = name;
-    //
-    //     try {
-    //         fs.accessSync(this.dbPath, fs.constants.F_OK);
-    //     } catch (err) {
-    //         if (err.code === 'ENOENT') {
-    //             fs.mkdirSync(dbPath);
-    //         } else {
-    //             throw err;
-    //         }
-    //     }
-    // }
-    //
-    // /**
-    //  * Créer un objet si l'id n'est pas définis, sinon update. Si l'id existe déjà
-    //  */
-    // add(object, cb) {
-    //     // // daiNote.create(new Note(req.body.title, req.body.type, ''));
-    //     if (typeof object === 'object') {
-    //         object.id = object.id ? object.id : this.getNewId();
-    //
-    //         let path = this.link + object.id + this.ext;
-    //
-    //         fs.writeFile(path, JSON.stringify(object), function(err) {
-    //             if (err) return cb(err);
-    //             cb(null, object);
-    //         });
-    //     } else {
-    //         cb(new Error('ArgumentError: `object` argument is ' + object + ' must be an object'));
-    //     }
-    // }
+    constructor(database, name) {
+        this.name = name;
+        this.absolutePath = path.resolve(this.database.absolutePath, this.name);
+    }
+
+    /**
+     * Créer un objet si l'id n'est pas définis, sinon update. Si l'id existe déjà
+     */
+    create(doc, cb) {
+        return new Promise((resolve, reject) => {
+            if (typeof doc === 'object') {
+                doc.id = doc.id || this.getNewId();
+                let docFileName = doc.id + '.json';
+
+                let docPath = path.resolve(this.absolutePath, docFileName);
+
+                fs.writeFile(docPath, JSON.stringify(doc), function(err) {
+                    if (err) reject(err);
+                    resolve(doc);
+                });
+            } else {
+                reject(new Error('ArgumentError: `doc` argument is ' + typeof doc + ' must be an object'));
+            }
+        });
+    }
     //
     // /**
     //  * Cherche un document en fonction de son id.

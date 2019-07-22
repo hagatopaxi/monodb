@@ -3,6 +3,7 @@
 const path = require('path');
 const assert = require('assert');
 const fs = require('fs');
+const monolib = require('./monolib');
 
 module.exports = class Index {
     constructor(collection, fields) {
@@ -23,7 +24,9 @@ module.exports = class Index {
             this.index[field] = {};
         }
 
-        this.absolutePath = path.resolve(this.collection.absolutePath, 'index.json');
+        this.indexFileName = 'index.json';
+        this.encoding = 'utf8';
+        this.absolutePath = path.resolve(this.collection.absolutePath, this.indexFileName);
 
         this.load();
     }
@@ -93,7 +96,7 @@ module.exports = class Index {
      * Enregistre this.index dans le fichier index.json du dossier de collection
      */
     save() {
-        fs.writeFile(this.absolutePath, JSON.stringify(this.index), 'utf-8');
+        fs.writeFile(this.absolutePath, JSON.stringify(this.index), this.encoding);
     }
 
     /**
@@ -102,23 +105,34 @@ module.exports = class Index {
      */
     load() {
         try {
-            let tmpIndex = fs.readFileSync(this.absolutePath);
-            assert(tmpIndex.lenght === this.fields.lenght);
-            // vérifier que les champs de l'index chargé et de ceux passé au constructeur sont les mêmes
-            // Vérifier la longueur de l'index et celle du nombre de fichier dans le dossier
+            var tmpIndex = JSON.parse(fs.readFileSync(this.absolutePath));
+            var files = fs.readdirSync(this.collection.absolutePath);
+            var ids = Object.keys(tmpIndex.id);
+            let tmpFields = Object.keys(tmpIndex);
+            let diff = monolib.arrayDiff(tmpFields, this.fields);
+
+            // vérifier que les champs de tmpIndex et de ceux de this.fields sont identiques
+            assert(diff.lenght === 0);
+            // Vérifier que le nombre d'éléments dans l'index et le dossier de la collection est identique
+            assert(ids.lenght === tmpFields.lenght);
+
             // tmpIndex est considéré comme correct
             this.index = tmpIndex;
         } catch (err) {
+            console.log(err);
             // Condition non respectées => On refait l'index et on le stock !
-
+            files = monolib.arrayDiff(files, Object.keys(tmpIndex.id));
             for (let file of files) {
-                if (file && file.name && file.name !== 'index.json') {
-                    let object = JSON.parse(fs.readFileSync(this.link + file.name, 'utf-8'));
-                    console.log(object);
-                    this.updateIndex(object);
+                if (file !== this.indexFileName) {
+                    let filePath = path.resolve(this.collection.absolutePath, file);
+                    let doc = JSON.parse(fs.readFileSync(filePath, this.encoding));
+                    console.log(doc);
+                    for (let field in this.fields) {
+                        this.index[field][doc[field]] = doc.id;
+                    }
                 }
             }
-            fs.writeFileSync(this.absolutePath, JSON.stringify(this.indexBase), 'utf-8');
+            this.save();
         }
     }
 }
