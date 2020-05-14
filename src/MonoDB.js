@@ -6,6 +6,9 @@ class MonoDB {
     // static dbPath = "./.database";
 
     constructor() {
+        if (!this) {
+            throw new Error("Call constructor with new");
+        }
         this._id = this._id || this.genId();
         this._creationDate = this._creationDate || new Date();
         this._lastUpdateDate = new Date();

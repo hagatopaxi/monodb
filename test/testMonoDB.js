@@ -17,6 +17,27 @@ class Voiture extends MonoDB {
     }
 };
 
+class Personne extends MonoDB {
+    constructor(name) {
+        super();
+        this.name = name;
+    }
+};
+
+class Women extends Personne {
+    constructor(name) {
+        super(name);
+        this.sex = 'F';
+    }
+};
+
+class Men extends Personne {
+    constructor(name) {
+        super(name);
+        this.sex = 'M';
+    }
+};
+
 describe('MonoDB', function() {
     before(function () {
         MonoDB.dbPath = ".dbTest";
@@ -71,7 +92,29 @@ describe('MonoDB', function() {
     });
 
     describe("advanced test", function () {
-        it("dirty read prevent", async function() {
+        it("inheritance", async function () {
+            let alice = new Women("Alice");
+            let bob = new Men("Bob");
+
+            await alice.save();
+            await bob.save();
+
+            let bob_id = bob.id;
+            let alice_id = alice.id;
+
+            alice = null;
+            bob = null;
+
+            bob = await Men.get(bob_id);
+            alice = await Women.get(alice_id);
+
+            assert(bob.name === "Bob");
+            assert(bob.sex === "M");
+            assert(alice.name === "Alice");
+            assert(alice.sex === "F");
+        });
+
+        it("dirty read prevent");/*, async function() {
             let v1 = new Voiture("Fiat", "500");
             // On bloque artificiellement l'écriture de l'objet
             v1.save(-1);
@@ -79,7 +122,6 @@ describe('MonoDB', function() {
             // Cette sauvegarde ne peut se faire tant que unlock n'est pas appelé.
             v1.brand = "Peugeot";
             v1.model = "205";
-            console.log(MonoDB.__mutex);
             await v1.save(1);
 
             let v2 = await Voiture.get(v1.id);
@@ -93,13 +135,13 @@ describe('MonoDB', function() {
 
             assert(v2.brand === "Peugeot");
             assert(v2.model === "205");
-        });
+        });*/
 
         it("delete collection");
         it("delete database");
     });
 
     after(function () {
-        // exec("rm -r .dbTest");
+        exec("rm -r .dbTest");
     });
 });
