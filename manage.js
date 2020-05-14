@@ -1,3 +1,5 @@
+#! /usr/bin/node
+
 'use strict';
 
 var mocha = require('gulp-mocha');
