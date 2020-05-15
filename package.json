@@ -1,22 +1,22 @@
 {
-  "name": "monolite",
-  "version": "1.0.0",
-  "description": "Very lite and fast SGBD for document orient database",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha"
-  },
-  "keywords": [
-    "document",
-    "database"
-  ],
-  "repository": "https://bitbucket.org/gleger/monolite/",
-  "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwlgr.space)",
-  "license": "ISC",
-  "devDependencies": {
-    "mocha": "^6.1.4",
-    "gulp-mocha": "^6.0.0",
-    "gulp": "^4.0.2",
-    "gulp-nodemon": "^2.4.2"
-  }
+    "name": "monolite",
+    "version": "1.0.0",
+    "description": "Simple serialize system",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha"
+    },
+    "keywords": [
+        "document",
+        "database"
+    ],
+    "repository": "https://bitbucket.org/gleger/monolite/",
+    "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwenael-leger.fr)",
+    "license": "ISC",
+    "devDependencies": {
+        "mocha": "^6.1.4",
+        "gulp-mocha": "^6.0.0",
+        "gulp": "^4.0.2",
+        "gulp-nodemon": "^2.4.2"
+    }
 }

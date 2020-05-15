@@ -21,6 +21,8 @@ class Personne extends MonoDB {
     constructor(name) {
         super();
         this.name = name;
+        this.sex = undefined;
+        this.__subclass = [Women, Men];
     }
 };
 
@@ -88,11 +90,21 @@ describe('MonoDB', function() {
             assert(v2 instanceof Voiture);
         });
 
-        it("meta value (__fields)");
+        it("meta value (__fields)", async function () {
+            let v1 = new Voiture("Fiat", "500");
+            await v1.save();
+            let v1_id = v1.id;
+            v1 = null;
+            let v2 = await Voiture.get(v1_id);
+
+            assert(v2.__name);
+            assert(v2.__colDir);
+            assert(v2.__filePath);
+        });
     });
 
-    describe("advanced test", function () {
-        it("inheritance", async function () {
+    describe("inheritance", function () {
+        it("simple  extends", async function () {
             let alice = new Women("Alice");
             let bob = new Men("Bob");
 
@@ -113,7 +125,9 @@ describe('MonoDB', function() {
             assert(alice.name === "Alice");
             assert(alice.sex === "F");
         });
+    });
 
+    describe("TODO test", function () {
         it("dirty read prevent");/*, async function() {
             let v1 = new Voiture("Fiat", "500");
             // On bloque artificiellement l'écriture de l'objet

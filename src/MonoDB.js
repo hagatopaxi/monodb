@@ -17,7 +17,6 @@ class MonoDB {
         this.__name = this.constructor.name || this.name
         this.__colDir = `${MonoDB.dbPath}/${this.__name}`;
         this.__filePath = `${this.__colDir}/${this.id}.json`;
-        this.__fileLockPath = `${this.__filePath}.lock`;
     }
 
     async save(call) {
@@ -29,7 +28,6 @@ class MonoDB {
         }
 
         this._lastUpdateDate = new Date();
-
         try {
             let obj = {};
 
@@ -75,7 +73,6 @@ class MonoDB {
         try {
             obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
         } catch(err) {
-            console.log("2");
             throw "ReadError: " + this.name + "@" + id + " has no save";
         }
 
@@ -132,12 +129,16 @@ class MonoDB {
     }
 
     get code() {
-        return this.__name + "@" + this._id
+        return this.__name + "@" + this._id;
+    }
+
+    set code(nope) {
+        throw new Error("Modification du code en cours");
     }
 
     /**
-    * Si fichier avec .lock à la fin, on attend d'être réveillé
-    * sinon on rajoute .lock et on sort de la function
+     * Si fichier avec .lock à la fin, on attend d'être réveillé
+     * sinon on rajoute .lock et on sort de la function
     */
     lock(call) {
         // while (MonoDB.getMutex(this.code)) {}
