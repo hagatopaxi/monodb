@@ -14,7 +14,7 @@ class MonoDB {
         this._lastUpdateDate = new Date();
 
         /*** Meta properties ***/
-        this.__name = this.constructor.name || this.name
+        this.__name = this.constructor.name;
         this.__colDir = `${MonoDB.dbPath}/${this.__name}`;
         this.__filePath = `${this.__colDir}/${this.id}.json`;
     }
@@ -39,7 +39,7 @@ class MonoDB {
 
             await fs.writeFile(this.__filePath, JSON.stringify(obj));
         } catch(err) {
-            throw "ReadError: " + this.__filePath + " do not exist";
+            throw "ReadError: " + this.code + " do not exist";
         }
 
         this.unlock(call);
@@ -59,21 +59,20 @@ class MonoDB {
         }
     }
 
+    /**
+     * Satic function to retrieve object already store
+     * @param  {string}  id the id of object
+     * @return {Promise}    object retrieve with correct prototype
+     */
     static async get(id) {
-        let colDir = `${MonoDB.dbPath}/${this.name}`
-        try {
-            await fs.stat(colDir);
-        } catch(err) {
-            throw new Error("ReadError: " + this.name + " has no document reached");
-        }
-
-        let filePath = `${colDir}/${id}.json`
+        let colDir = `${MonoDB.dbPath}/${this.name}`;
+        let filePath = `${colDir}/${id}.json`;
         let obj = {};
 
         try {
             obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
         } catch(err) {
-            throw "ReadError: " + this.name + "@" + id + " has no save";
+            throw "ReadError: " + this.code + " has no save";
         }
 
         obj = Object.assign(new this, obj);
@@ -121,7 +120,7 @@ class MonoDB {
     }
 
     set id(id) {
-        this._id = id;
+        throw new Error("Do not change id value");
     }
 
     static async deleteDB() {

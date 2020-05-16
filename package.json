@@ -1,10 +1,10 @@
 {
-    "name": "monolite",
+    "name": "MonoDB",
     "version": "1.0.0",
     "description": "Simple serialize system",
     "main": "index.js",
     "scripts": {
-        "test": "mocha"
+        "test": "node manage.js test"
     },
     "keywords": [
         "document",

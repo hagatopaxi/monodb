@@ -17,23 +17,22 @@ class Voiture extends MonoDB {
     }
 };
 
-class Personne extends MonoDB {
+class Person extends MonoDB {
     constructor(name) {
         super();
         this.name = name;
         this.sex = undefined;
-        this.__subclass = [Women, Men];
     }
 };
 
-class Women extends Personne {
+class Women extends Person {
     constructor(name) {
         super(name);
         this.sex = 'F';
     }
 };
 
-class Men extends Personne {
+class Men extends Person {
     constructor(name) {
         super(name);
         this.sex = 'M';
@@ -101,6 +100,20 @@ describe('MonoDB', function() {
             assert(v2.__colDir);
             assert(v2.__filePath);
         });
+
+        it("promise feature", function(done) {
+            let v1 = new Voiture("Fiat", "500");
+            v1.save().then(function () {
+                assert(true);
+                done();
+            }).catch(function () {
+                assert(false);
+            });
+        });
+
+        it("tes", async function() {
+            let v1 = new Voiture("Fiat", "500");
+        });
     });
 
     describe("inheritance", function () {
@@ -125,6 +138,28 @@ describe('MonoDB', function() {
             assert(alice.name === "Alice");
             assert(alice.sex === "F");
         });
+
+        it("polymorphism"); /*, async function () {
+            let alice = new Women("Alice");
+            let bob = new Men("Bob");
+
+            await alice.save();
+            await bob.save();
+
+            let bob_id = bob.id;
+            let alice_id = alice.id;
+
+            alice = null;
+            bob = null;
+
+            bob = await Person.get(bob_id);
+            alice = await Person.get(alice_id);
+
+            assert(bob.name === "Bob");
+            assert(bob.sex === "M");
+            assert(alice.name === "Alice");
+            assert(alice.sex === "F");
+        });*/
     });
 
     describe("TODO test", function () {
