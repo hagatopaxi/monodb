@@ -1,5 +1,5 @@
 {
-    "name": "MonoDB",
+    "name": "monodb",
     "version": "1.0.0",
     "description": "Simple serialize system",
     "main": "index.js",

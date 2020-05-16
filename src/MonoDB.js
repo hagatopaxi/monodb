@@ -47,15 +47,9 @@ class MonoDB {
 
     async delete() {
         try {
-            await fs.stat(this.__colDir)
-        } catch(err) {
-            return;
-        }
-
-        try {
             await fs.unlink(this.__filePath, JSON.stringify(this));
         } catch(err) {
-            throw "ReadError: " + this.__filePath + " do not exist";
+            throw "ReadError: " + this.code + " do not exist";
         }
     }
 
