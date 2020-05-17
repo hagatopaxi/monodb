@@ -66,7 +66,7 @@ class MonoDB {
         try {
             obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
         } catch(err) {
-            throw "ReadError: " + this.code + " has no save";
+            throw "ReadError: " + this.name + "@" + id + " does not exist";
         }
 
         obj = Object.assign(new this, obj);
