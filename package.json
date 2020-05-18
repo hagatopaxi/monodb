@@ -1,14 +1,18 @@
 {
     "name": "monodb",
-    "version": "1.1.1",
-    "description": "Simple serialize system",
+    "version": "1.1.2",
+    "description": "Simple storage system with no dependencies",
     "main": "index.js",
     "scripts": {
         "test": "node manage.js test"
     },
     "keywords": [
         "document",
-        "database"
+        "database",
+        "object",
+        "orm",
+        "ligth database",
+        "nosql"
     ],
     "repository": "https://bitbucket.org/gleger/monolite/",
     "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwenael-leger.fr)",

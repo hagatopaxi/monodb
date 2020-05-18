@@ -201,7 +201,8 @@ Save and delete object which have index is same.
 
 ## TODO
 
-- [ ] Index system to retrieve object from different keys.
+- [X] Index system.
+- [X] Retrieve object from different keys.
 - [ ] Full inheritance system.
 - [ ] Isotalte the get and the save methods
 
