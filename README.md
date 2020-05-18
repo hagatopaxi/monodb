@@ -115,6 +115,85 @@ MonoDB.dbPath = "/path/to/db";
 ```
 Use this once in program to not change the destination storage and retrieve.
 
+### Set custom id
+
+You can save yours objects with custom key with the method `setKeyName`.
+Do not edit this field after and be shure the values inside are unique.
+The field `id` are the same as you custom field.
+
+Or you can override the field `id`, but you loose the meaning.
+
+```js
+class User extends MonoDB {
+    constructor(pseudo) {
+        super(pseudo);
+        this.pseudo = pseudo
+
+        this.setKeyName("pseudo");
+        // Now this.id === this.pseudo
+        // The both field exist
+    }
+}
+
+let user = new User("Hagatopaxi");
+
+// To retrieve you can do
+User.get("Hagatopaxi").then(handle).catch(errHandle);
+
+// Or within async/await function
+try {
+    await User.get("Hagatopaxi");
+} catch(err) {
+    console.error(err);
+}
+```
+
+### Make index
+
+The index feature is very minimal.
+Having one or more indexes slows down save and delete feature. Getting object by `id` or by index are the same cost as without index.
+
+```js
+class Student extends MonoDB {
+    constructor(classroom, level, school) {
+        super();
+        this.classroom = classroom;
+        this.level = level;
+        this.school = school;
+
+        this.setIndex(["classroom", "school"]);
+    }
+}
+
+// Getting is almost same
+Student.getByIndex("classroom", "value").then(handle).catch(errHandle);
+
+// Or within async/await function
+try {
+    await Student.getByIndex("classroom", "value");
+} catch(err) {
+    console.error(err);
+}
+```
+
+Here we store the index relation with symbolic links. So we have this structur (`@` represente symbolic links):
+
+```
++-- dbname
+    +-- class1
+        +-- indexName1
+            +-- value1
+                +-- object1_id.json
+            +-- value2
+                +-- object2_id.json
+        +-- object1_id.json
+        +-- object2_id.json
+```
+
+Objects with the same value for the same index are store inside same directory (different value different directory). Behavior when updating fields which are indexes is not define.
+
+Save and delete object which have index is same.
+
 ## Not supported
 
 * Inheritance retrieve.
