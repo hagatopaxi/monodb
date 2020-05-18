@@ -17,7 +17,7 @@ All objects are store in differente file, it's esay to view them inside file bro
         +-- object1_id.json
         +-- object2_id.json
     +-- class2
-        +-- objetc1_id.json
+        +-- object1_id.json
 ```
 
 If you know the id of your object it is very simple to find your file.
@@ -183,9 +183,9 @@ Here we store the index relation with symbolic links. So we have this structur (
     +-- class1
         +-- indexName1
             +-- value1
-                +-- object1_id.json
+                +-- @object1_id.json
             +-- value2
-                +-- object2_id.json
+                +-- @object2_id.json
         +-- object1_id.json
         +-- object2_id.json
 ```
