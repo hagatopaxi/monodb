@@ -24,8 +24,10 @@ class MonoDB {
 
         try {
             await fs.stat(this.__colDir)
-        } catch(err) {
-            await fs.mkdir(this.__colDir, {recursive: true});
+        } catch (err) {
+            await fs.mkdir(this.__colDir, {
+                recursive: true
+            });
         }
 
         this._lastUpdateDate = new Date();
@@ -40,7 +42,7 @@ class MonoDB {
 
             await fs.writeFile(this.__filePath, JSON.stringify(obj));
             await this.saveIndex();
-        } catch(err) {
+        } catch (err) {
             throw "ReadError: " + this.code + " do not exist";
         }
 
@@ -50,7 +52,7 @@ class MonoDB {
     async delete() {
         try {
             await fs.unlink(this.__filePath);
-        } catch(err) {
+        } catch (err) {
             throw new Error("Document must be saved before to be deleted: " + this.code);
         }
         await this.deleteIndex();
@@ -61,7 +63,7 @@ class MonoDB {
             let indexPath = `${this.__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
             try {
                 await fs.unlink(indexPath);
-            } catch(err) {
+            } catch (err) {
                 throw new Error("Index must be exist to be deleted: " + this.code);
             }
         }
@@ -79,7 +81,7 @@ class MonoDB {
 
         try {
             obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
-        } catch(err) {
+        } catch (err) {
             return null;
         }
 
@@ -108,14 +110,16 @@ class MonoDB {
                 let indexDir = `${this.__colDir}/${index}/${this[index]}`;
                 try {
                     await fs.stat(indexDir);
-                } catch(err) {
-                    await fs.mkdir(indexDir, {recursive: true});
+                } catch (err) {
+                    await fs.mkdir(indexDir, {
+                        recursive: true
+                    });
                 }
 
                 let indexFile = `${indexDir}/${this.id}.json`;
                 try {
                     await fs.symlink(this.__filePath, indexFile);
-                } catch(err) {
+                } catch (err) {
                     console.warning(err);
                 }
             }
@@ -130,7 +134,7 @@ class MonoDB {
 
         try {
             files = await fs.readdir(indexDir);
-        } catch(err) {
+        } catch (err) {
             return res;
         }
 
@@ -140,7 +144,7 @@ class MonoDB {
                 let obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
                 obj = Object.assign(new this, obj);
                 res.push(obj);
-            } catch(err) {}
+            } catch (err) {}
         }
 
         return res;
@@ -204,16 +208,16 @@ class MonoDB {
     /**
      * Si fichier avec .lock à la fin, on attend d'être réveillé
      * sinon on rajoute .lock et on sort de la function
-    */
+     */
     lock(call) {
         // while (MonoDB.getMutex(this.code)) {}
         // MonoDB.addMutex(this.code);
     }
 
     /**
-    * Si le fichier n'a pas de .lock à la fin renvoie une erreur: Appel de unlock hors context.
-    * sinon enlève le .lock
-    */
+     * Si le fichier n'a pas de .lock à la fin renvoie une erreur: Appel de unlock hors context.
+     * sinon enlève le .lock
+     */
     unlock(call) {
         // if (!MonoDB.getMutex(this.code)) {
         //     throw new Error("Bad use of unlock");
@@ -222,7 +226,7 @@ class MonoDB {
     }
 
     setKeyName(keyName) {
-        if (this[keyName]) {
+        if (keyName in this) {
             this.__keyName = keyName;
             this._id = this[this.__keyName];
             this.__filePath = `${this.__colDir}/${this.id}.json`;
