@@ -9,7 +9,7 @@ class MonoDB {
         if (!this) {
             throw new Error("Call constructor with new");
         }
-        this._id = this._id || this.genId();
+        this._id = this._id || this.getId();
         this._creationDate = this._creationDate || new Date();
         this._lastUpdateDate = new Date();
 
@@ -21,6 +21,7 @@ class MonoDB {
 
     async save(call) {
         this.lock(call);
+
         try {
             await fs.stat(this.__colDir)
         } catch(err) {
@@ -38,6 +39,7 @@ class MonoDB {
             }
 
             await fs.writeFile(this.__filePath, JSON.stringify(obj));
+            await this.saveIndex();
         } catch(err) {
             throw "ReadError: " + this.code + " do not exist";
         }
@@ -47,9 +49,21 @@ class MonoDB {
 
     async delete() {
         try {
-            await fs.unlink(this.__filePath, JSON.stringify(this));
+            await fs.unlink(this.__filePath);
         } catch(err) {
-            throw "ReadError: " + this.code + " do not exist";
+            throw new Error("Document must be saved before to be deleted: " + this.code);
+        }
+        await this.deleteIndex();
+    }
+
+    async deleteIndex() {
+        for (let indexName of this.__index || []) {
+            let indexPath = `${this.__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
+            try {
+                await fs.unlink(indexPath);
+            } catch(err) {
+                throw new Error("Index must be exist to be deleted: " + this.code);
+            }
         }
     }
 
@@ -66,7 +80,7 @@ class MonoDB {
         try {
             obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
         } catch(err) {
-            throw "ReadError: " + this.name + "@" + id + " does not exist";
+            return null;
         }
 
         obj = Object.assign(new this, obj);
@@ -74,12 +88,62 @@ class MonoDB {
         return obj;
     }
 
-    equals(other) {
-        return this.__name === other.__name && this.id === other.id;
+    setIndex(index) {
+        if (!Array.isArray(index)) {
+            index = [index];
+        }
+        // Check if all index exist and are defined
+        for (let i of index) {
+            if (!(i in this)) {
+                throw new Error("All index name must be fields");
+            }
+        }
+
+        this.__index = index;
     }
 
-    genId() {
-        return `${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}`
+    async saveIndex() {
+        if (this.__index) {
+            for (let index of this.__index) {
+                let indexDir = `${this.__colDir}/${index}/${this[index]}`;
+                try {
+                    await fs.stat(indexDir);
+                } catch(err) {
+                    await fs.mkdir(indexDir, {recursive: true});
+                }
+
+                let indexFile = `${indexDir}/${this.id}.json`;
+                try {
+                    await fs.symlink(this.__filePath, indexFile);
+                } catch(err) {
+                    console.warning(err);
+                }
+            }
+        }
+    }
+
+    static async getByIndex(indexName, value) {
+        let colDir = `${MonoDB.dbPath}/${this.name}`;
+        let indexDir = `${colDir}/${indexName}/${value}`;
+        let res = [];
+        let files = [];
+
+        try {
+            files = await fs.readdir(indexDir);
+        } catch(err) {
+            return res;
+        }
+
+        for (let file of files) {
+            let filePath = `${colDir}/${file}`;
+            try {
+                let obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
+                obj = Object.assign(new this, obj);
+                res.push(obj);
+            } catch(err) {}
+        }
+
+        return res;
     }
 
     static get dbPath() {
@@ -129,6 +193,14 @@ class MonoDB {
         throw new Error("Modification du code en cours");
     }
 
+    equals(other) {
+        return this.__name === other.__name && this.id === other.id;
+    }
+
+    getId() {
+        return `${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}`
+    }
+
     /**
      * Si fichier avec .lock à la fin, on attend d'être réveillé
      * sinon on rajoute .lock et on sort de la function
@@ -147,6 +219,16 @@ class MonoDB {
         //     throw new Error("Bad use of unlock");
         // }
         // MonoDB.rmMutex(this.code);
+    }
+
+    setKeyName(keyName) {
+        if (this[keyName]) {
+            this.__keyName = keyName;
+            this._id = this[this.__keyName];
+            this.__filePath = `${this.__colDir}/${this.id}.json`;
+        } else {
+            throw new Error("Key name must be an existing field");
+        }
     }
 }
 
