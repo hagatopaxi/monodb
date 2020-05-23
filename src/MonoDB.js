@@ -236,6 +236,7 @@ class MonoDB {
         if (keyName in this) {
             this.#__keyName = keyName;
             this._id = this[this.#__keyName];
+            this.#__filePath = `${this.#__colDir}/${this._id}.json`;
         } else {
             throw new Error("Key name must be an existing field");
         }
