@@ -3,7 +3,14 @@
 const fs = require('fs').promises;
 
 class MonoDB {
-    // static dbPath = "./.database";
+    #__colDir = undefined;
+    #__filePath = undefined;
+    #__name = undefined;
+    #__keyName = undefined;
+    #__index = undefined;
+    #__mutex = undefined;
+
+    static __dbPath = "./.database";
 
     constructor() {
         if (!this) {
@@ -14,18 +21,18 @@ class MonoDB {
         this._lastUpdateDate = new Date();
 
         /*** Meta properties ***/
-        this.__name = this.constructor.name;
-        this.__colDir = `${MonoDB.dbPath}/${this.__name}`;
-        this.__filePath = `${this.__colDir}/${this.id}.json`;
+        this.#__name = this.constructor.name;
+        this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
+        this.#__filePath = `${this.#__colDir}/${this._id}.json`;
     }
 
     async save(call) {
         this.lock(call);
 
         try {
-            await fs.stat(this.__colDir)
+            await fs.stat(this.#__colDir)
         } catch (err) {
-            await fs.mkdir(this.__colDir, {
+            await fs.mkdir(this.#__colDir, {
                 recursive: true
             });
         }
@@ -40,7 +47,7 @@ class MonoDB {
                 }
             }
 
-            await fs.writeFile(this.__filePath, JSON.stringify(obj));
+            await fs.writeFile(this.#__filePath, JSON.stringify(obj));
             await this.saveIndex();
         } catch (err) {
             throw "ReadError: " + this.code + " do not exist";
@@ -51,7 +58,7 @@ class MonoDB {
 
     async delete() {
         try {
-            await fs.unlink(this.__filePath);
+            await fs.unlink(this.#__filePath);
         } catch (err) {
             throw new Error("Document must be saved before to be deleted: " + this.code);
         }
@@ -59,8 +66,8 @@ class MonoDB {
     }
 
     async deleteIndex() {
-        for (let indexName of this.__index || []) {
-            let indexPath = `${this.__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
+        for (let indexName of this.#__index || []) {
+            let indexPath = `${this.#__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
             try {
                 await fs.unlink(indexPath);
             } catch (err) {
@@ -101,13 +108,13 @@ class MonoDB {
             }
         }
 
-        this.__index = index;
+        this.#__index = index;
     }
 
     async saveIndex() {
-        if (this.__index) {
-            for (let index of this.__index) {
-                let indexDir = `${this.__colDir}/${index}/${this[index]}`;
+        if (this.#__index) {
+            for (let index of this.#__index) {
+                let indexDir = `${this.#__colDir}/${index}/${this[index]}`;
                 try {
                     await fs.stat(indexDir);
                 } catch (err) {
@@ -118,7 +125,7 @@ class MonoDB {
 
                 let indexFile = `${indexDir}/${this.id}.json`;
                 try {
-                    await fs.symlink(this.__filePath, indexFile);
+                    await fs.symlink(this.#__filePath, indexFile);
                 } catch (err) {
                     console.warning(err);
                 }
@@ -159,22 +166,22 @@ class MonoDB {
     }
 
     static getMutex(key) {
-        if (this.__mutex) {
-            return this.__mutex[key] || false;
+        if (this.#__mutex) {
+            return this.#__mutex[key] || false;
         } else {
             return false;
         }
     }
 
     static addMutex(key) {
-        if (!this.__mutex) {
-            this.__mutex = {};
+        if (!this.#__mutex) {
+            this.#__mutex = {};
         }
-        this.__mutex[key] = true;
+        this.#__mutex[key] = true;
     }
 
     static rmMutex(key) {
-        this.__mutex[key] = false;
+        this.#__mutex[key] = false;
     }
 
     get id() {
@@ -190,7 +197,7 @@ class MonoDB {
     }
 
     get code() {
-        return this.__name + "@" + this._id;
+        return this.#__name + "@" + this._id;
     }
 
     set code(nope) {
@@ -198,7 +205,7 @@ class MonoDB {
     }
 
     equals(other) {
-        return this.__name === other.__name && this.id === other.id;
+        return this.#__name === other.#__name && this.id === other.id;
     }
 
     getId() {
@@ -227,9 +234,8 @@ class MonoDB {
 
     setKeyName(keyName) {
         if (keyName in this) {
-            this.__keyName = keyName;
-            this._id = this[this.__keyName];
-            this.__filePath = `${this.__colDir}/${this.id}.json`;
+            this.#__keyName = keyName;
+            this._id = this[this.#__keyName];
         } else {
             throw new Error("Key name must be an existing field");
         }

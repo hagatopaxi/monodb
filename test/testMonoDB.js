@@ -93,7 +93,6 @@ describe('MonoDB', function() {
             let v1_id = v1.id;
             v1.setKm(22);
             await v1.save();
-
             v1 = null;
 
             let v2 = await Car.get(v1_id);
@@ -123,23 +122,26 @@ describe('MonoDB', function() {
             let v1 = new Car("Fiat", "500");
             await v1.save();
             let v1_id = v1.id;
-            
+
             await v1.delete();
 
             let retrieve = await Car.get(v1_id);
             assert(retrieve === null);
         });
 
-        it("meta value (__fields)", async function () {
+        it("meta value are not visible (__fields)", async function () {
             let v1 = new Car("Fiat", "500");
             await v1.save();
             let v1_id = v1.id;
             v1 = null;
             let v2 = await Car.get(v1_id);
 
-            assert(v2.__name);
-            assert(v2.__colDir);
-            assert(v2.__filePath);
+            assert(!v2.__name);
+            assert(!v2.__colDir);
+            assert(!v2.__filePath);
+            assert(!v2.__keyName);
+            assert(!v2.__index);
+            assert(!v2.__mutex);
         });
 
         it("promise feature", function(done) {
