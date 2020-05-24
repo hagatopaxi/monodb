@@ -20,10 +20,26 @@ class MonoDB {
         this._creationDate = this._creationDate || new Date();
         this._lastUpdateDate = new Date();
 
+        this.setMeta();
+    }
+
+    setMeta() {
         /*** Meta properties ***/
         this.#__name = this.constructor.name;
         this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
         this.#__filePath = `${this.#__colDir}/${this._id}.json`;
+    }
+
+    get __meta() {
+        return {
+            colDir: this.#__colDir,
+            filePath: this.#__filePath,
+            name: this.#__name,
+            keyName: this.#__keyName,
+            index: this.#__index,
+            mutex: this.#__mutex,
+            dbPath: this.constructor.__dbPath
+        };
     }
 
     async save(call) {
@@ -84,17 +100,18 @@ class MonoDB {
     static async get(id) {
         let colDir = `${MonoDB.dbPath}/${this.name}`;
         let filePath = `${colDir}/${id}.json`;
-        let obj = {};
+        let res = {};
 
         try {
-            obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
+            res = JSON.parse(await fs.readFile(filePath, 'utf8'));
         } catch (err) {
             return null;
         }
 
-        obj = Object.assign(new this, obj);
+        res = Object.assign(new this, res);
+        res.setMeta();
 
-        return obj;
+        return res;
     }
 
     setIndex(index) {
@@ -240,6 +257,10 @@ class MonoDB {
         } else {
             throw new Error("Key name must be an existing field");
         }
+    }
+
+    getFilePath() {
+        return this.#__filePath;
     }
 }
 
