@@ -1,10 +1,10 @@
 {
     "name": "monodb",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "description": "Simple storage system with no dependencies",
     "main": "index.js",
     "scripts": {
-        "test": "node manage.js test"
+        "test": "mocha test/ --exit"
     },
     "keywords": [
         "document",
@@ -14,13 +14,7 @@
         "ligth database",
         "nosql"
     ],
-    "repository": "https://bitbucket.org/gleger/monolite/",
+    "repository": "https://github.com/LegerG/monodb",
     "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwenael-leger.fr)",
-    "license": "ISC",
-    "devDependencies": {
-        "mocha": "^6.1.4",
-        "gulp-mocha": "^6.0.0",
-        "gulp": "^4.0.2",
-        "gulp-nodemon": "^2.4.2"
-    }
+    "license": "ISC"
 }

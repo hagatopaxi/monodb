@@ -4,7 +4,7 @@
 
 ## Install
 
-`npm i monodb`
+`npm i monodb --save`
 
 ## About
 
@@ -194,9 +194,28 @@ Objects with the same value for the same index are store inside same directory (
 
 Save and delete object which have index is same.
 
+### Meta data
+
+To debug, you can have a reading access of meta values. Change value of meta data does not have any effect.
+
+```js
+let student = await Student.get("key");
+console.log(student.__meta);
+
+// {
+//     colDir: "/path/to/collection",
+//     filePath: "/path/to/file/object.json",
+//     name: "NameOfCollection",
+//     keyName: "nameOfKeyMember",
+//     index: ["index", "list"],
+//     mutex: undefined,
+//     dbPath: "/path/to/db"
+// }
+```
+
 ## Not supported
 
-* Inheritance retrieve.
+* Inheritance: retrieve object with parent class.
 * Complexe request. Only the id's requests are available.
 
 ## TODO
@@ -211,5 +230,7 @@ Save and delete object which have index is same.
 You can post a pull request or issue to help me. Else, you can send me an email with your suggestion.
 
 ### Run test
+
+Mocha is require to launch tests
 
 `npm run test`

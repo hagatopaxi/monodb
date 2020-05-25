@@ -1,7 +1,6 @@
 "use strict";
 
 const MonoDB = require('../src/MonoDB');
-const mocha = require('mocha');
 const assert = require('assert');
 const exec = require('child_process').exec;
 
