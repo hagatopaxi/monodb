@@ -2,6 +2,9 @@
 
 > :warning: This is beta version, use carfully for production
 
+> :warning: Use it only with Node V12
+
+
 ## Install
 
 `npm i monodb --save`
@@ -32,6 +35,7 @@ const MonoDB = require("monodb");
 // Create your own class
 class Person extends MonoDB {
     constructor(name, age) {
+        super();
         this.name = name;
         this.age = age;
     }
