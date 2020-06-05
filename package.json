@@ -4,7 +4,7 @@
     "description": "Simple storage system with no dependencies",
     "main": "index.js",
     "scripts": {
-        "test": "mocha test/ --exit"
+        "test": "mocha"
     },
     "keywords": [
         "document",

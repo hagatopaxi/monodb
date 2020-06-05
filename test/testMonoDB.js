@@ -69,7 +69,7 @@ class Student extends MonoDB {
 }
 
 describe('MonoDB', function() {
-    before(function () {
+    beforeEach(function () {
         MonoDB.dbPath = ".dbTest";
     });
 
@@ -106,6 +106,8 @@ describe('MonoDB', function() {
             await v1.save();
             let v2 = await Car.get(v1.id);
 
+            assert(v2);
+            assert(v1.equals(v1));
             assert(v1.equals(v2));
             assert(v2.equals(v1));
         });
@@ -158,7 +160,7 @@ describe('MonoDB', function() {
             try {
                 await u1.save();
             } catch(err) {
-                console.error(err);
+                assert(false);
             }
 
             assert(u1.id === "Hagatopaxi");
@@ -234,6 +236,38 @@ describe('MonoDB', function() {
             assert(students.length === 1);
             assert(students[0].school === "Grenoble");
         });
+
+        it("array diff size", async function() {
+            class Exemple extends MonoDB {
+                constructor() {
+                    super();
+                    this.arr = [{
+                        a: 1,
+                        b: false
+                    }, {
+                        a: 2,
+                        b: false
+                    }];
+                }
+            }
+
+            let ex = new Exemple();
+            await ex.save();
+            ex.arr = [{
+                a: 1,
+                b: true
+            }, {
+                a: 2,
+                b: false
+            }];
+            await ex.save();
+            let retrieve = await Exemple.get(ex.id);
+            assert(retrieve)
+        });
+
+        afterEach(function () {
+            exec("rm -r .dbTest");
+        });
     });
 
     describe("bad usage tests, should throw exception", function() {
@@ -283,6 +317,10 @@ describe('MonoDB', function() {
                 assert(true);
             }
         });
+
+        afterEach(function () {
+            exec("rm -r .dbTest");
+        });
     });
 
     describe("inheritance", function () {
@@ -329,6 +367,10 @@ describe('MonoDB', function() {
             assert(alice.name === "Alice");
             assert(alice.sex === "F");
         });*/
+
+        afterEach(function () {
+            exec("rm -r .dbTest");
+        });
     });
 
     describe("TODO test", function () {
@@ -357,9 +399,10 @@ describe('MonoDB', function() {
 
         it("delete collection");
         it("delete database");
+
+        afterEach(function () {
+            exec("rm -r .dbTest");
+        });
     });
 
-    after(function () {
-        exec("rm -r .dbTest");
-    });
 });

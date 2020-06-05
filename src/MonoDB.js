@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require('fs').promises;
+const fsCb = require('fs');
 
 class MonoDB {
     #__colDir = undefined;
@@ -16,6 +17,7 @@ class MonoDB {
         if (!this) {
             throw new Error("Call constructor with new");
         }
+
         this._id = this._id || this.getId();
         this._creationDate = this._creationDate || new Date();
         this._lastUpdateDate = new Date();
@@ -23,53 +25,32 @@ class MonoDB {
         this.setMeta();
     }
 
-    setMeta() {
-        /*** Meta properties ***/
-        this.#__name = this.constructor.name;
-        this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
-        this.#__filePath = `${this.#__colDir}/${this._id}.json`;
-    }
-
-    get __meta() {
-        return {
-            colDir: this.#__colDir,
-            filePath: this.#__filePath,
-            name: this.#__name,
-            keyName: this.#__keyName,
-            index: this.#__index,
-            mutex: this.#__mutex,
-            dbPath: this.constructor.__dbPath
-        };
-    }
-
     async save(call) {
-        this.lock(call);
-
-        try {
-            await fs.stat(this.#__colDir)
-        } catch (err) {
-            await fs.mkdir(this.#__colDir, {
-                recursive: true
-            });
-        }
-
-        this._lastUpdateDate = new Date();
-        try {
-            let obj = {};
-
-            for (let key of Object.keys(this)) {
-                if (key[0] != '_' || key[1] != '_') {
-                    obj[key] = this[key];
-                }
+        return new Promise(async (resolve, reject) => {
+            // this.lock(call);
+            try {
+                await fs.stat(this.#__colDir)
+            } catch (err) {
+                await fs.mkdir(this.#__colDir, {
+                    recursive: true
+                });
             }
 
-            await fs.writeFile(this.#__filePath, JSON.stringify(obj));
-            await this.saveIndex();
-        } catch (err) {
-            throw "ReadError: " + this.code + " do not exist";
-        }
+            this._lastUpdateDate = new Date();
+            let obj = this;
+            let str = JSON.stringify(obj);
 
-        this.unlock(call);
+            fsCb.writeFile(this.#__filePath, str, "utf8", function (err, res) {
+                if (err) {
+                    console.log(err);
+                    reject(new Error("ReadError: " + this.code + " do not exist"));
+                    return;
+                }
+                resolve();
+            });
+            await this.saveIndex();
+            // this.unlock(call);
+        });
     }
 
     async delete() {
@@ -103,7 +84,8 @@ class MonoDB {
         let res = {};
 
         try {
-            res = JSON.parse(await fs.readFile(filePath, 'utf8'));
+            let content = await fs.readFile(filePath, 'utf8');
+            res = JSON.parse(content);
         } catch (err) {
             return null;
         }
@@ -113,6 +95,8 @@ class MonoDB {
 
         return res;
     }
+
+    /**** Index ****/
 
     setIndex(index) {
         if (!Array.isArray(index)) {
@@ -135,8 +119,9 @@ class MonoDB {
                 try {
                     await fs.stat(indexDir);
                 } catch (err) {
-                    await fs.mkdir(indexDir, {
+                    fs.mkdir(indexDir, {
                         recursive: true
+                    }).catch(function (err) {
                     });
                 }
 
@@ -144,7 +129,7 @@ class MonoDB {
                 try {
                     await fs.symlink(this.#__filePath, indexFile);
                 } catch (err) {
-                    console.warning(err);
+                    // console.log("DDDD"+err);
                 }
             }
         }
@@ -172,6 +157,25 @@ class MonoDB {
         }
 
         return res;
+    }
+
+    setMeta() {
+        /*** Meta properties ***/
+        this.#__name = this.constructor.name;
+        this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
+        this.#__filePath = `${this.#__colDir}/${this._id}.json`;
+    }
+
+    get __meta() {
+        return {
+            colDir: this.#__colDir,
+            filePath: this.#__filePath,
+            name: this.#__name,
+            keyName: this.#__keyName,
+            index: this.#__index,
+            mutex: this.#__mutex,
+            dbPath: this.constructor.__dbPath
+        };
     }
 
     static get dbPath() {
@@ -205,12 +209,28 @@ class MonoDB {
         return this._id;
     }
 
+    set creationDate(nope) {
+        throw new Error("You can not modify `id` field, use `_id` to not throw an error");
+    }
+
+    get creationDate() {
+        return this._creationDate;
+    }
+
+    set creationDate(nope) {
+        throw new Error("You can not modify `creationDate` field, use `_creationDate` to not throw an error");
+    }
+
+    get lastUpdateDate() {
+        return this._lastUpdateDate;
+    }
+
     set id(id) {
         throw new Error("Do not change id value");
     }
 
     static async deleteDB() {
-        throw "Unavailable function";
+        throw new Error("Unavailable function");
     }
 
     get code() {
@@ -227,26 +247,6 @@ class MonoDB {
 
     getId() {
         return `${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}-${Math.random().toString(16).substring(3,7)}`
-    }
-
-    /**
-     * Si fichier avec .lock à la fin, on attend d'être réveillé
-     * sinon on rajoute .lock et on sort de la function
-     */
-    lock(call) {
-        // while (MonoDB.getMutex(this.code)) {}
-        // MonoDB.addMutex(this.code);
-    }
-
-    /**
-     * Si le fichier n'a pas de .lock à la fin renvoie une erreur: Appel de unlock hors context.
-     * sinon enlève le .lock
-     */
-    unlock(call) {
-        // if (!MonoDB.getMutex(this.code)) {
-        //     throw new Error("Bad use of unlock");
-        // }
-        // MonoDB.rmMutex(this.code);
     }
 
     setKeyName(keyName) {
