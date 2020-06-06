@@ -12,7 +12,6 @@ class MonoDB {
     #__keyName = undefined;
     #__index = undefined;
     #__mutex = undefined;
-    #__saved = undefined;
 
     static __dbPath = "./.database";
 
@@ -33,7 +32,6 @@ class MonoDB {
         this.#__name = this.constructor.name;
         this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
         this.#__filePath = `${this.#__colDir}/${this._id}.json`;
-        this.#__saved = false;
         this.#__mutex = Mutex.getLock(this.code);
     }
 
@@ -51,9 +49,7 @@ class MonoDB {
                 let obj = this;
                 let str = JSON.stringify(obj);
 
-                let flag = this.saved ? "r+" : "w";
-
-                fsCb.writeFile(this.#__filePath, str, {encoding: "utf8", flag: flag}, (err, res) => {
+                fsCb.writeFile(this.#__filePath, str, {encoding: "utf8", flag: "w"}, (err, res) => {
                     if (err) {
                         unlock();
                         reject(new Error("ReadError: " + this.code + " do not exist"));
@@ -61,7 +57,6 @@ class MonoDB {
                     }
 
                     this.saveIndex().then(() => {
-                        this.saved = true;
                         unlock();
                         resolve();
                     });
@@ -123,7 +118,6 @@ class MonoDB {
 
                 res = Object.assign(new this, res);
                 res.setMeta();
-                res.saved = true;
 
                 unlock();
                 resolve(res);
@@ -245,14 +239,6 @@ class MonoDB {
 
     static rmMutex(key) {
         this.#__mutex[key] = false;
-    }
-
-    get saved() {
-        return this.#__saved;
-    }
-
-    set saved(saved) {
-        this.#__saved = saved;
     }
 
     get id() {

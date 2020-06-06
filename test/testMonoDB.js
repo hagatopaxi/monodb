@@ -69,7 +69,7 @@ class Student extends MonoDB {
     }
 }
 
-describe('MonoDB', function() {
+describe('Test MonoDB', function() {
     this.timeout(5000);
 
     beforeEach(function () {
@@ -164,7 +164,7 @@ describe('MonoDB', function() {
         });
     });
 
-    describe('basics tests', function() {
+    describe('Basics tests', function() {
         it('trivial test', async function () {
             let v1 = new Car("Fiat", "500");
             let v1_id = v1.id;
@@ -328,44 +328,35 @@ describe('MonoDB', function() {
             assert(students[0].school === "Grenoble");
         });
 
-        it("array diff size", async function() {
+        it("object reduce size", async function() {
             class Exemple extends MonoDB {
                 constructor() {
                     super();
-                    this.arr = [{
-                        a: 1,
-                        b: false
-                    }, {
-                        a: 2,
-                        b: false
-                    }];
+                    this.arr = "Very loooooooooooonnng string";
                 }
             }
 
             let ex = new Exemple();
             await ex.save();
 
-            ex.arr = [{
-                a: 1,
-                b: true
-            }, {
-                a: 2,
-                b: false
-            }];
+            ex.arr = "shorter string";
 
             await ex.save();
 
-            console.log(ex.id);
             let retrieve = await Exemple.get(ex.id);
-            assert(retrieve)
+            assert(retrieve);
         });
 
+
+        it("delete collection");
+        it("delete database");
+
         afterEach(function (done) {
-            // exec("rm -rf .dbTest", done);
+            exec("rm -rf .dbTest", done);
         });
     });
 
-    describe("bad usage tests, should throw exception", function() {
+    describe("Bad usage tests, should throw exception", function() {
         it("document does not exist", async function() {
             let car = new Car("Mini", "One D");
 
@@ -418,7 +409,7 @@ describe('MonoDB', function() {
         });
     });
 
-    describe("inheritance", function () {
+    describe("Inheritance", function () {
         it("simple  extends", async function () {
             let alice = new Women("Alice");
             let bob = new Men("Bob");
@@ -468,8 +459,8 @@ describe('MonoDB', function() {
         });
     });
 
-    describe("TODO test", function () {
-        it("dirty read prevent");/*, async function() {
+    describe("Mutual exclusion", function () {
+        it("dirty read");/*, async function() {
             let v1 = new Car("Fiat", "500");
             // On bloque artificiellement l'écriture de l'objet
             v1.save(-1);
@@ -491,9 +482,6 @@ describe('MonoDB', function() {
             assert(v2.brand === "Peugeot");
             assert(v2.model === "205");
         });*/
-
-        it("delete collection");
-        it("delete database");
 
         afterEach(function (done) {
             exec("rm -rf .dbTest", done);
