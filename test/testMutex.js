@@ -9,24 +9,24 @@ describe("Test Mutex", function () {
         var output = "";
 
         let m = new Mutex();
-        m.lock(function () {
+        m.lock(function (unlock) {
             setTimeout(function () {
                 output += "A";
-                m.unlock();
+                unlock();
             }, 100);
         });
 
-        m.lock(function () {
+        m.lock(function (unlock) {
             setTimeout(function () {
                 output += "B";
-                m.unlock();
+                unlock();
             }, 50);
         });
 
-        m.lock(function () {
+        m.lock(function (unlock) {
             setTimeout(function () {
                 output += "C";
-                m.unlock();
+                unlock();
 
                 assert(output === "ABC");
                 done();

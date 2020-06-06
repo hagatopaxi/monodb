@@ -3,6 +3,7 @@
 const MonoDB = require('../src/MonoDB');
 const assert = require('assert');
 const exec = require('child_process').exec;
+const fs = require("fs");
 
 class Car extends MonoDB {
     constructor(brand, model) {
@@ -69,8 +70,98 @@ class Student extends MonoDB {
 }
 
 describe('MonoDB', function() {
+    this.timeout(5000);
+
     beforeEach(function () {
         MonoDB.dbPath = ".dbTest";
+    });
+
+    describe("Atomics tests", function() {
+        it("save", function(done) {
+            let v1 = new Car("Fiat", "500");
+            v1.save().then(() => {
+                let filePath = ".dbTest/Car/" + v1.id + ".json";
+                fs.readFile(filePath, "utf8", function(err, res) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    let obj = JSON.parse(res);
+
+                    assert(obj._id === v1.id);
+                    assert(obj.brand === "Fiat");
+                    assert(obj.model === "500");
+                    done();
+                });
+            });
+        });
+
+        it("get", function(done) {
+            let obj = {
+                _id: "SuperId",
+                brand: "Peugeot",
+                model: "205"
+            };
+
+            let str = JSON.stringify(obj);
+            let path = ".dbTest/Car/SuperId.json";
+            fs.mkdir(".dbTest/Car/", {recursive: true}, function(err) {
+                if (err) {
+                    done(err);
+                }
+
+                fs.writeFile(path, str, "utf8", function(err) {
+                    if(err) {
+                        done(err);
+                    }
+
+                    Car.get("SuperId").then(function(res) {
+                        if (!res) {
+                            done("Error");
+                        }
+
+                        assert(res.id === "SuperId");
+                        assert(res.brand === "Peugeot");
+                        assert(res.model === "205");
+
+                        done();
+                    });
+                });
+            });
+        });
+
+        it("delete", function(done) {
+            let obj = {
+                _id: "CoollestId",
+                brand: "Renault",
+                model: "Picasso"
+            };
+
+            let str = JSON.stringify(obj);
+            let path = ".dbTest/Car/CoollestId.json";
+            fs.mkdir(".dbTest/Car", {recursive: true}, function(err) {
+                if (err) {
+                    done(err);
+                }
+
+                fs.writeFile(path, str, "utf8", function(err) {
+                    if(err) {
+                        done(err);
+                    }
+
+                    let car = new Car("Renault", "Picasso");
+                    car._id = "CoollestId";
+                    car.setMeta();
+                    car.delete().then(() => {
+                        done();
+                    }).catch(done);
+                });
+            });
+        });
+
+        afterEach(function(done) {
+            exec("rm -rf .dbTest", done);
+        });
     });
 
     describe('basics tests', function() {
@@ -265,8 +356,8 @@ describe('MonoDB', function() {
             assert(retrieve)
         });
 
-        afterEach(function () {
-            exec("rm -r .dbTest");
+        afterEach(function (done) {
+            exec("rm -rf .dbTest", done);
         });
     });
 
@@ -318,8 +409,8 @@ describe('MonoDB', function() {
             }
         });
 
-        afterEach(function () {
-            exec("rm -r .dbTest");
+        afterEach(function (done) {
+            exec("rm -rf .dbTest", done);
         });
     });
 
@@ -368,8 +459,8 @@ describe('MonoDB', function() {
             assert(alice.sex === "F");
         });*/
 
-        afterEach(function () {
-            exec("rm -r .dbTest");
+        afterEach(function (done) {
+            exec("rm -rf .dbTest", done);
         });
     });
 
@@ -400,8 +491,8 @@ describe('MonoDB', function() {
         it("delete collection");
         it("delete database");
 
-        afterEach(function () {
-            exec("rm -r .dbTest");
+        afterEach(function (done) {
+            exec("rm -rf .dbTest", done);
         });
     });
 

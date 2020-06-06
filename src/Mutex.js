@@ -42,7 +42,7 @@ class Mutex {
             this.#pendings.push(fn);
         } else {
             this.#isLocked = true;
-            fn();
+            return fn(this.unlock.bind(this));
         }
     }
 
@@ -50,11 +50,11 @@ class Mutex {
         if (call) {
             console.log("unlock " + call);
         }
-        
+
         if (this.#isLocked) {
             if (this.#pendings.length > 0) {
                 let fn = this.#pendings.shift();
-                fn();
+                return fn(this.unlock.bind(this));
             } else {
                 this.#isLocked = false;
             }

@@ -2,6 +2,7 @@
 
 const fs = require('fs').promises;
 const fsCb = require('fs');
+const Mutex = require('./Mutex');
 
 class MonoDB {
     #__colDir = undefined;
@@ -10,6 +11,7 @@ class MonoDB {
     #__keyName = undefined;
     #__index = undefined;
     #__mutex = undefined;
+    #__saved = undefined;
 
     static __dbPath = "./.database";
 
@@ -25,41 +27,63 @@ class MonoDB {
         this.setMeta();
     }
 
+    setMeta() {
+        /*** Meta properties ***/
+        this.#__name = this.constructor.name;
+        this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
+        this.#__filePath = `${this.#__colDir}/${this._id}.json`;
+        this.#__saved = false;
+        this.#__mutex = Mutex.getLock(this.code);
+    }
+
     async save(call) {
         return new Promise(async (resolve, reject) => {
-            // this.lock(call);
-            try {
-                await fs.stat(this.#__colDir)
-            } catch (err) {
-                await fs.mkdir(this.#__colDir, {
-                    recursive: true
-                });
-            }
+            this.#__mutex.lock(async (unlock) => {
 
-            this._lastUpdateDate = new Date();
-            let obj = this;
-            let str = JSON.stringify(obj);
-
-            fsCb.writeFile(this.#__filePath, str, "utf8", function (err, res) {
-                if (err) {
-                    console.log(err);
-                    reject(new Error("ReadError: " + this.code + " do not exist"));
-                    return;
+                try {
+                    await fs.stat(this.#__colDir);
+                } catch (err) {
+                    await fs.mkdir(this.#__colDir, {recursive: true});
                 }
-                resolve();
+
+                this._lastUpdateDate = new Date();
+                let obj = this;
+                let str = JSON.stringify(obj);
+
+                let flag = this.saved ? "r+" : "w";
+
+                fsCb.writeFile(this.#__filePath, str, {encoding: "utf8", flag: flag}, (err, res) => {
+                    if (err) {
+                        unlock();
+                        reject(new Error("ReadError: " + this.code + " do not exist"));
+                        return;
+                    }
+
+                    this.saveIndex().then(() => {
+                        this.saved = true;
+                        unlock();
+                        resolve();
+                    });
+                });
             });
-            await this.saveIndex();
-            // this.unlock(call);
         });
     }
 
     async delete() {
-        try {
-            await fs.unlink(this.#__filePath);
-        } catch (err) {
-            throw new Error("Document must be saved before to be deleted: " + this.code);
-        }
-        await this.deleteIndex();
+        return new Promise(async (resolve, reject) => {
+            // this.#__mutex.lock(async (unlock) => {
+                try {
+                    await fs.unlink(this.#__filePath);
+                } catch (err) {
+                    // unlock();
+                    reject(new Error("Document must be saved before to be deleted: " + this.code));
+                    return;
+                }
+                await this.deleteIndex();
+                // unlock();
+                resolve();
+            // });
+        });
     }
 
     async deleteIndex() {
@@ -79,21 +103,32 @@ class MonoDB {
      * @return {Promise}    object retrieve with correct prototype
      */
     static async get(id) {
-        let colDir = `${MonoDB.dbPath}/${this.name}`;
-        let filePath = `${colDir}/${id}.json`;
-        let res = {};
+        let code = this.name + "@" + id;
+        let mutex = Mutex.getLock(code);
 
-        try {
-            let content = await fs.readFile(filePath, 'utf8');
-            res = JSON.parse(content);
-        } catch (err) {
-            return null;
-        }
+        return new Promise(async (resolve, reject) => {
+            // mutex.lock(async (unlock) => {
+                let colDir = `${MonoDB.dbPath}/${this.name}`;
+                let filePath = `${colDir}/${id}.json`;
+                let res = {};
 
-        res = Object.assign(new this, res);
-        res.setMeta();
+                try {
+                    let content = await fs.readFile(filePath, 'utf8');
+                    res = JSON.parse(content);
+                } catch (err) {
+                    // unlock();
+                    resolve(null);
+                    return;
+                }
 
-        return res;
+                res = Object.assign(new this, res);
+                res.setMeta();
+                res.saved = true;
+
+                // unlock();
+                resolve(res);
+            // });
+        });
     }
 
     /**** Index ****/
@@ -116,20 +151,22 @@ class MonoDB {
         if (this.#__index) {
             for (let index of this.#__index) {
                 let indexDir = `${this.#__colDir}/${index}/${this[index]}`;
+
+
                 try {
                     await fs.stat(indexDir);
                 } catch (err) {
                     fs.mkdir(indexDir, {
                         recursive: true
-                    }).catch(function (err) {
-                    });
+                    }).catch(function (err) {});
                 }
 
                 let indexFile = `${indexDir}/${this.id}.json`;
+
                 try {
                     await fs.symlink(this.#__filePath, indexFile);
                 } catch (err) {
-                    // console.log("DDDD"+err);
+
                 }
             }
         }
@@ -157,13 +194,6 @@ class MonoDB {
         }
 
         return res;
-    }
-
-    setMeta() {
-        /*** Meta properties ***/
-        this.#__name = this.constructor.name;
-        this.#__colDir = `${MonoDB.dbPath}/${this.#__name}`;
-        this.#__filePath = `${this.#__colDir}/${this._id}.json`;
     }
 
     get __meta() {
@@ -205,11 +235,19 @@ class MonoDB {
         this.#__mutex[key] = false;
     }
 
+    get saved() {
+        return this.#__saved;
+    }
+
+    set saved(saved) {
+        this.#__saved = saved;
+    }
+
     get id() {
         return this._id;
     }
 
-    set creationDate(nope) {
+    set id(nope) {
         throw new Error("You can not modify `id` field, use `_id` to not throw an error");
     }
 
@@ -223,10 +261,6 @@ class MonoDB {
 
     get lastUpdateDate() {
         return this._lastUpdateDate;
-    }
-
-    set id(id) {
-        throw new Error("Do not change id value");
     }
 
     static async deleteDB() {
