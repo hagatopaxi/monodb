@@ -344,6 +344,7 @@ describe('MonoDB', function() {
 
             let ex = new Exemple();
             await ex.save();
+
             ex.arr = [{
                 a: 1,
                 b: true
@@ -351,13 +352,16 @@ describe('MonoDB', function() {
                 a: 2,
                 b: false
             }];
+
             await ex.save();
+
+            console.log(ex.id);
             let retrieve = await Exemple.get(ex.id);
             assert(retrieve)
         });
 
         afterEach(function (done) {
-            exec("rm -rf .dbTest", done);
+            // exec("rm -rf .dbTest", done);
         });
     });
 

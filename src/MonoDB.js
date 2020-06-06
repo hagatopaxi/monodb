@@ -2,6 +2,7 @@
 
 const fs = require('fs').promises;
 const fsCb = require('fs');
+const path = require('path');
 const Mutex = require('./Mutex');
 
 class MonoDB {
@@ -71,18 +72,17 @@ class MonoDB {
 
     async delete() {
         return new Promise(async (resolve, reject) => {
-            // this.#__mutex.lock(async (unlock) => {
+            this.#__mutex.lock(async (unlock) => {
                 try {
                     await fs.unlink(this.#__filePath);
                 } catch (err) {
-                    // unlock();
+                    unlock();
                     reject(new Error("Document must be saved before to be deleted: " + this.code));
-                    return;
                 }
                 await this.deleteIndex();
-                // unlock();
+                unlock();
                 resolve();
-            // });
+            });
         });
     }
 
@@ -107,7 +107,7 @@ class MonoDB {
         let mutex = Mutex.getLock(code);
 
         return new Promise(async (resolve, reject) => {
-            // mutex.lock(async (unlock) => {
+            mutex.lock(async (unlock) => {
                 let colDir = `${MonoDB.dbPath}/${this.name}`;
                 let filePath = `${colDir}/${id}.json`;
                 let res = {};
@@ -116,7 +116,7 @@ class MonoDB {
                     let content = await fs.readFile(filePath, 'utf8');
                     res = JSON.parse(content);
                 } catch (err) {
-                    // unlock();
+                    unlock();
                     resolve(null);
                     return;
                 }
@@ -125,9 +125,9 @@ class MonoDB {
                 res.setMeta();
                 res.saved = true;
 
-                // unlock();
+                unlock();
                 resolve(res);
-            // });
+            });
         });
     }
 
@@ -148,28 +148,40 @@ class MonoDB {
     }
 
     async saveIndex() {
-        if (this.#__index) {
-            for (let index of this.#__index) {
-                let indexDir = `${this.#__colDir}/${index}/${this[index]}`;
+        return new Promise((resolve, reject) => {
+            if (this.#__index) {
+                let stack = [];
+                for (let index of this.#__index) {
 
+                    let fn = new Promise((resolve, reject) => {
+                        let indexDir = path.resolve(`${this.#__colDir}/${index}/${this[index]}`);
 
-                try {
-                    await fs.stat(indexDir);
-                } catch (err) {
-                    fs.mkdir(indexDir, {
-                        recursive: true
-                    }).catch(function (err) {});
+                        fsCb.mkdir(indexDir, {recursive: true}, (err) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+
+                            let indexFile = `${indexDir}/${this.id}.json`;
+
+                            fsCb.symlink(path.resolve(this.#__filePath), indexFile, (err) => {
+                                if (err) {
+                                    reject(err);
+                                    return;
+                                }
+                                resolve();
+                            });
+                        });
+                    });
+
+                    stack.push(fn);
                 }
 
-                let indexFile = `${indexDir}/${this.id}.json`;
-
-                try {
-                    await fs.symlink(this.#__filePath, indexFile);
-                } catch (err) {
-
-                }
+                Promise.all(stack).then(resolve).catch(reject);
+            } else {
+                resolve();
             }
-        }
+        });
     }
 
     static async getByIndex(indexName, value) {
