@@ -246,8 +246,8 @@ function transaction() {
     });
 }
 
-async main() {
-    await transaction();
+async function main() {
+    await transaction(); // Or transaction().then(handle).catch(errHandle)
 }
 ```
 
