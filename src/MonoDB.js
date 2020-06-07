@@ -2,6 +2,7 @@
 
 const fs = require('fs').promises;
 const fsCb = require('fs');
+const { exec } = require('child_process');
 const path = require('path');
 const Mutex = require('./Mutex');
 
@@ -12,6 +13,7 @@ class MonoDB {
     #__keyName = undefined;
     #__index = undefined;
     #__mutex = undefined;
+    #__parent = undefined;
 
     static __dbPath = "./.database";
 
@@ -52,13 +54,28 @@ class MonoDB {
                 fsCb.writeFile(this.#__filePath, str, {encoding: "utf8", flag: "w"}, (err, res) => {
                     if (err) {
                         unlock();
-                        reject(new Error("ReadError: " + this.code + " do not exist"));
+                        reject(new Error("SaveError: " + this.code + " can't be saved"));
                         return;
                     }
 
                     this.saveIndex().then(() => {
-                        unlock();
-                        resolve();
+                        if (this.#__parent) {
+
+                            let parentDir = this.#__colDir.replace(this.#__name, this.#__parent)
+                            let parentPath = this.#__filePath.replace(this.#__name, this.#__parent);
+
+                            let cmd = `ln -f ${this.#__filePath} ${parentPath}`;
+
+                            fsCb.mkdir(parentDir, {recursive: true}, (err, res) => {
+                                exec(cmd, () => {
+                                    unlock();
+                                    resolve();
+                                });
+                            });
+                        } else {
+                            unlock();
+                            resolve();
+                        }
                     });
                 });
             });
@@ -79,17 +96,6 @@ class MonoDB {
                 resolve();
             });
         });
-    }
-
-    async deleteIndex() {
-        for (let indexName of this.#__index || []) {
-            let indexPath = `${this.#__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
-            try {
-                await fs.unlink(indexPath);
-            } catch (err) {
-                throw new Error("Index must be exist to be deleted: " + this.code);
-            }
-        }
     }
 
     /**
@@ -148,7 +154,7 @@ class MonoDB {
                 for (let index of this.#__index) {
 
                     let fn = new Promise((resolve, reject) => {
-                        let indexDir = path.resolve(`${this.#__colDir}/${index}/${this[index]}`);
+                        let indexDir = `${this.#__colDir}/${index}/${this[index]}`;
 
                         fsCb.mkdir(indexDir, {recursive: true}, (err) => {
                             if (err) {
@@ -158,7 +164,8 @@ class MonoDB {
 
                             let indexFile = `${indexDir}/${this.id}.json`;
 
-                            fsCb.symlink(path.resolve(this.#__filePath), indexFile, (err) => {
+                            let cmd = `ln -f ${this.#__filePath} ${indexFile}`;
+                            exec(cmd, (err) => {
                                 if (err) {
                                     reject(err);
                                     return;
@@ -192,14 +199,27 @@ class MonoDB {
 
         for (let file of files) {
             let filePath = `${colDir}/${file}`;
+
             try {
                 let obj = JSON.parse(await fs.readFile(filePath, 'utf8'));
                 obj = Object.assign(new this, obj);
+                obj.setMeta();
                 res.push(obj);
             } catch (err) {}
         }
 
         return res;
+    }
+
+    async deleteIndex() {
+        for (let indexName of this.#__index || []) {
+            let indexPath = `${this.#__colDir}/${indexName}/${this[indexName]}/${this.id}.json`;
+            try {
+                await fs.unlink(indexPath);
+            } catch (err) {
+                throw new Error("Index must be exist to be deleted: " + this.code);
+            }
+        }
     }
 
     get __meta() {
@@ -220,25 +240,6 @@ class MonoDB {
 
     static set dbPath(path) {
         this.__dbPath = path;
-    }
-
-    static getMutex(key) {
-        if (this.#__mutex) {
-            return this.#__mutex[key] || false;
-        } else {
-            return false;
-        }
-    }
-
-    static addMutex(key) {
-        if (!this.#__mutex) {
-            this.#__mutex = {};
-        }
-        this.#__mutex[key] = true;
-    }
-
-    static rmMutex(key) {
-        this.#__mutex[key] = false;
     }
 
     get id() {
@@ -289,6 +290,10 @@ class MonoDB {
         } else {
             throw new Error("Key name must be an existing field");
         }
+    }
+
+    setParent(parent) {
+        this.#__parent = parent.name;
     }
 
     getFilePath() {

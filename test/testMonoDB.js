@@ -1,8 +1,9 @@
 "use strict";
 
 const MonoDB = require('../src/MonoDB');
+const Mutex = require('../src/Mutex');
 const assert = require('assert');
-const exec = require('child_process').exec;
+const { exec } = require('child_process');
 const fs = require("fs");
 
 class Car extends MonoDB {
@@ -353,6 +354,7 @@ describe('Test MonoDB', function() {
 
         afterEach(function (done) {
             exec("rm -rf .dbTest", done);
+            // done();
         });
     });
 
@@ -432,56 +434,94 @@ describe('Test MonoDB', function() {
             assert(alice.sex === "F");
         });
 
-        it("polymorphism"); /*, async function () {
-            let alice = new Women("Alice");
-            let bob = new Men("Bob");
+        it("polymorphism", async function () {
+            class Animal extends MonoDB {
+                constructor(name) {
+                    super();
+                    this.name = name;
+                    this.species = undefined;
+                }
+            }
 
-            await alice.save();
-            await bob.save();
+            class Cat extends Animal {
+                constructor(name) {
+                    super(name);
+                    this.species = "CAT";
 
-            let bob_id = bob.id;
-            let alice_id = alice.id;
+                    this.setParent(Animal);
+                }
+            }
 
-            alice = null;
-            bob = null;
+            class Dog extends Animal {
+                constructor(name) {
+                    super(name);
+                    this.species = "DOG";
 
-            bob = await Person.get(bob_id);
-            alice = await Person.get(alice_id);
+                    this.setParent(Animal);
+                }
+            }
 
-            assert(bob.name === "Bob");
-            assert(bob.sex === "M");
-            assert(alice.name === "Alice");
-            assert(alice.sex === "F");
-        });*/
+            let cat = new Cat("Garfield");
+            let dog = new Dog("Beethoven");
+
+            await cat.save();
+            await dog.save();
+
+            let catRetrieve = await Animal.get(cat.id);
+            let dogRetrieve = await Animal.get(dog.id);
+
+            assert(catRetrieve instanceof Animal);
+            assert(dogRetrieve instanceof Animal);
+
+            assert(catRetrieve.id === cat.id);
+            assert(dogRetrieve.id === dog.id);
+
+            assert(catRetrieve.name === "Garfield");
+            assert(dogRetrieve.name === "Beethoven");
+
+            assert(catRetrieve.species === "CAT");
+            assert(dogRetrieve.species === "DOG");
+        });
+
+        it("abstract class");
 
         afterEach(function (done) {
+            // done();
             exec("rm -rf .dbTest", done);
         });
     });
 
     describe("Mutual exclusion", function () {
-        it("dirty read");/*, async function() {
-            let v1 = new Car("Fiat", "500");
-            // On bloque artificiellement l'écriture de l'objet
-            v1.save(-1);
-            v1.lock(0);
-            // Cette sauvegarde ne peut se faire tant que unlock n'est pas appelé.
-            v1.brand = "Peugeot";
-            v1.model = "205";
-            await v1.save(1);
+        it("dirty read", function(done) {
+            let c1 = new Car("Ferrari", "SF90");
+            // Lock of c1 index by his code
+            let mutex = Mutex.getLock(c1.code);
+            let output = "";
+            mutex.lock(async (unlock) => {
+                // Sauvegarde blocké ! (pas de await pour ne pas que cet appel soit bloquant)
+                // Avoid errors
+                c1.save().then(() => {
+                    // Here the test is end
+                    output += "B";
+                    assert(output === "AB");
+                    done();
+                }).catch(()=>{
+                    done("Error ! Saving not working")
+                });
 
-            let v2 = await Car.get(v1.id);
-            assert(v2.equals(v1));
-            assert(v2.brand === "Fiat");
-            assert(v2.model === "500");
-
-            v1.unlock(0);
-
-            let v3 = await Car.get(v1.id);
-
-            assert(v2.brand === "Peugeot");
-            assert(v2.model === "205");
-        });*/
+                // Donc le fichier ne doit pas (encore) exister
+                let path = '.dbTest/Car/' + c1.id + '.json';
+                fs.stat(path, function(err, res) {
+                    if (err) {
+                        // OK!
+                        output += "A";
+                        unlock();
+                    } else {
+                        done("Error ! the lock has not work");
+                    }
+                })
+            });
+        });
 
         afterEach(function (done) {
             exec("rm -rf .dbTest", done);
