@@ -12,7 +12,9 @@
         "object",
         "orm",
         "ligth database",
-        "nosql"
+        "nosql",
+        "polymophism",
+        "transaction"
     ],
     "repository": "https://github.com/LegerG/monodb",
     "author": "Gwenaël Léger <gwenaelleger@gmail.com> (gwenael-leger.fr)",
