@@ -68,7 +68,7 @@ try {
 ```js
 Person.get(bob.id).then(function (pers) {
     console.log(pers);
-    // {   
+    // {
     //     _id: "Some random id",
     //     name: "Bob",
     //     age: 17,
@@ -212,22 +212,97 @@ console.log(student.__meta);
 //     name: "NameOfCollection",
 //     keyName: "nameOfKeyMember",
 //     index: ["index", "list"],
-//     mutex: undefined,
+//     mutex: mutexObjectOfThisObject,
 //     dbPath: "/path/to/db"
 // }
 ```
 
+### Transaction
+
+Each MonoDB's object has his own lock. You can access to it with `object.__meta.mutex`.
+You can use it for your own transactions.
+
+```js
+let mutex = student.__meta.mutex;
+
+mutex.lock((unlock) => {
+    // Your transaction's instructions
+    unlock(); // Or mutex.unlock()
+    // Do NOT forgot to call unlock.
+});
+```
+
+For now, there is no async/await support of `mutex.lock` and `mutex.unlock` methods. But you can promisify it like that
+
+```js
+function transaction() {
+    return new Promise((resolve, reject) => {
+    let mutex = student.__meta.mutex;
+        mutex.lock((unlock) => {
+            // Unlock ALWAYS BEFORE resolve or reject
+            unlock();
+            resolve(); // Or reject()
+        });
+    });
+}
+
+async main() {
+    await transaction();
+}
+```
+
+### Inheritance
+
+You simulate polymorphism behavior with the `setParent` method in constructor.
+
+If you have `Student` and `Profesor` extends `Person`, itself extends `MonoDB`, you can search object with `Person.get`.
+
+```js
+class Person extends MonoDB {
+    /* ... */
+}
+
+class Student extends Person {
+    constructor() {
+        super();
+
+        this.setParent(Person);
+    }
+}
+
+class Profesor extends Person {
+    constructor() {
+        super();
+
+        this.setParent(Person);
+    }
+}
+
+// Then you can retrieve object with Person class with no difference between Student and Profesor
+// All fields are accessable
+Person.get("student's or profesor's id").then((res) => {
+    console.log(res instanceof Person); // true
+});
+```
+
+It mandatory to call `this.setParent` inside all of your class you want activate polymophism search
+
+
 ## Not supported
 
-* Inheritance: retrieve object with parent class.
-* Complexe request. Only the id's requests are available.
+* You can not update the key value or the the index value of an object, that can be provoque overloading memory
+* **Node version < v12**
+* TypeScript
+* Complex transactions with rollback, checkpoint, etc...
 
 ## TODO
 
 - [X] Index system.
 - [X] Retrieve object from different keys.
-- [ ] Full inheritance system.
-- [ ] Isotalte the get and the save methods
+- [X] Full inheritance system.
+- [X] Isotalte the get, delete and the save methods
+- [ ] Update index when values changed
+- [ ] TypeScript support
 
 ## How to contribute
 
