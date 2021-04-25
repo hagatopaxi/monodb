@@ -1,3 +1,3 @@
-"use strict";
+'use strict'
 
-module.exports = require('./src/MonoDB');
+module.exports = require('./src/MonoDB')
