@@ -1,14 +1,22 @@
 'use strict'
 
 const assert = require('assert')
-const { _beforeEach, _afterEach, Animal, Dog, Cat, Women, Men } = require('./utils')
+const { Animal, Dog, Cat, Women, Men, Car, eraseDB } = require('./utils')
 
 describe('MonoDB -> Inheritance', function () {
   this.timeout(5000)
 
-  beforeEach(_beforeEach)
+  beforeEach(eraseDB)
 
-  afterEach(_afterEach)
+  after(eraseDB)
+
+  it('instanceof', async function () {
+    const v1 = new Car('Fiat', '500')
+    await v1.save()
+    const v2 = await Car.get(v1.id)
+    assert(v2)
+    assert(v2 instanceof Car)
+  })
 
   it('simple  extends', async function () {
     let alice = new Women('Alice')

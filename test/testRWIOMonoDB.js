@@ -2,12 +2,14 @@
 
 const assert = require('assert')
 const fs = require('fs')
-const { _beforeEach, _afterEach, Car } = require('./utils')
+const { eraseDB, Car } = require('./utils')
 
-describe('MonoDB -> Unit tests', function () {
+describe('MonoDB -> Read/Write file in database', function () {
   this.timeout(5000)
 
-  beforeEach(_beforeEach)
+  beforeEach(eraseDB)
+
+  after(eraseDB)
 
   it('save', function (done) {
     const v1 = new Car('Fiat', '500')
@@ -90,6 +92,4 @@ describe('MonoDB -> Unit tests', function () {
       })
     })
   })
-
-  afterEach(_afterEach)
 })

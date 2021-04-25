@@ -1,7 +1,5 @@
 # MonoDB
 
-> :warning: This is beta version, use carfully for production
-
 > :warning: Use it only with Node V12
 
 
@@ -11,7 +9,7 @@
 
 ## About
 
-MonoDB is an extremely simple serialization system.  It allows to store objects in JSON files, and this via a very simple and intuitive class interface.
+MonoDB is an extremely simple serialization system. It allows to store objects in JSON files, and this via a very simple and intuitive class interface.
 
 All objects are store in differente file, it's esay to view them inside file browser. The database are very simple structure :
 ```
@@ -25,6 +23,19 @@ All objects are store in differente file, it's esay to view them inside file bro
 
 If you know the id of your object it is very simple to find your file.
 
+## Performances
+
+MonoDB performance depends directly on the machine on which you use it. If your server uses an SSD the performance will be better than with an HDD.
+
+Furthermore, the number of objects you can store and the maximum size of each object depends on the formatting of your storage device.
+
+But in general, MonoDB should not be used for intensive and sensitive training purposes. Its use is suitable for the not very critical service and whose simplicity of development is important.
+
+| Format | Max object size | Max collection size |
+| :----:|:----:|:----:|
+| FAT32 | 2 GiB | 2^16 - 1 (65,535) |
+| NTFS | 16 TiB  | 2^32 (4,294,967,295) |
+| ext4 | 16 TiB | Unlimited |
 
 ## How to use
 

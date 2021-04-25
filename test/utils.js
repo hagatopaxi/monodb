@@ -93,12 +93,19 @@ class Dog extends Animal {
   }
 }
 
-function _beforeEach (done) {
-  exec('rm -rf .database', done)
+class SizedObject extends MonoDB {
+  constructor (memorySize = 1) {
+    super()
+
+    this.allocated = ''
+    for (let i = 0; i < memorySize * 1000; i++) {
+      this.allocated += 'a'
+    }
+  }
 }
 
-function _afterEach (done) {
-  exec('rm -rf .database', done)
+function eraseDB (done, dbName = '.database') {
+  exec(`rm -rf ${dbName}`, done)
 }
 
 module.exports = {
@@ -112,6 +119,6 @@ module.exports = {
   Animal,
   Cat,
   Dog,
-  _beforeEach,
-  _afterEach
+  SizedObject,
+  eraseDB
 }

@@ -2,12 +2,14 @@
 
 const MonoDB = require('../src/MonoDB')
 const assert = require('assert')
-const { _beforeEach, _afterEach, Car } = require('./utils')
+const { eraseDB, Car } = require('./utils')
 
 describe('MonoDB -> Bad usage tests, should throw exception', function () {
   this.timeout(5000)
 
-  beforeEach(_beforeEach)
+  beforeEach(eraseDB)
+
+  after(eraseDB)
 
   it('document does not exist', async function () {
     const car = new Car('Mini', 'One D')
@@ -57,6 +59,4 @@ describe('MonoDB -> Bad usage tests, should throw exception', function () {
       assert(true)
     }
   })
-
-  afterEach(_afterEach)
 })

@@ -12,14 +12,14 @@ describe('Test Mutex', function () {
       setTimeout(function () {
         output += 'A'
         unlock()
-      }, 100)
+      }, 10)
     })
 
     m.lock(function (unlock) {
       setTimeout(function () {
         output += 'B'
         unlock()
-      }, 50)
+      }, 5)
     })
 
     m.lock(function (unlock) {
@@ -29,7 +29,7 @@ describe('Test Mutex', function () {
 
         assert(output === 'ABC')
         done()
-      }, 10)
+      }, 1)
     })
   })
 

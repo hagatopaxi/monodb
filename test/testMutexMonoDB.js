@@ -3,14 +3,20 @@
 const Mutex = require('../src/Mutex')
 const assert = require('assert')
 const fs = require('fs')
-const { _beforeEach, _afterEach, Car } = require('./utils')
+const { eraseDB, Car } = require('./utils')
 
-describe('MonoDB -> Mutual exclusion', function () {
+describe('MonoDB -> Isolation', function () {
   this.timeout(5000)
 
-  beforeEach(_beforeEach)
+  beforeEach(eraseDB)
 
-  it('dirty read', function (done) {
+  after(eraseDB)
+
+  it('phantom reads')
+
+  it('non-repeatable reads')
+
+  it('dirty reads', function (done) {
     const c1 = new Car('Ferrari', 'SF90')
     // Lock of c1 index by his code
     const mutex = Mutex.getLock(c1.code)
@@ -40,6 +46,4 @@ describe('MonoDB -> Mutual exclusion', function () {
       })
     })
   })
-
-  afterEach(_afterEach)
 })
