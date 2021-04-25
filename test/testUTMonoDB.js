@@ -12,7 +12,7 @@ describe('MonoDB -> Unit tests', function () {
   it('save', function (done) {
     const v1 = new Car('Fiat', '500')
     v1.save().then(() => {
-      const filePath = '.dbTest/Car/' + v1.id + '.json'
+      const filePath = '.database/Car/' + v1.id + '.json'
       fs.readFile(filePath, 'utf8', function (err, res) {
         if (err) {
           done(err)
@@ -36,8 +36,8 @@ describe('MonoDB -> Unit tests', function () {
     }
 
     const str = JSON.stringify(obj)
-    const path = '.dbTest/Car/SuperId.json'
-    fs.mkdir('.dbTest/Car/', { recursive: true }, function (err) {
+    const path = '.database/Car/SuperId.json'
+    fs.mkdir('.database/Car/', { recursive: true }, function (err) {
       if (err) {
         done(err)
       }
@@ -70,8 +70,8 @@ describe('MonoDB -> Unit tests', function () {
     }
 
     const str = JSON.stringify(obj)
-    const path = '.dbTest/Car/CoollestId.json'
-    fs.mkdir('.dbTest/Car', { recursive: true }, function (err) {
+    const path = '.database/Car/CoollestId.json'
+    fs.mkdir('.database/Car', { recursive: true }, function (err) {
       if (err) {
         done(err)
       }

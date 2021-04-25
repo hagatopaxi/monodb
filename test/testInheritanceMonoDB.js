@@ -8,6 +8,8 @@ describe('MonoDB -> Inheritance', function () {
 
   beforeEach(_beforeEach)
 
+  afterEach(_afterEach)
+
   it('simple  extends', async function () {
     let alice = new Women('Alice')
     let bob = new Men('Bob')
@@ -54,6 +56,4 @@ describe('MonoDB -> Inheritance', function () {
   })
 
   it('abstract class')
-
-  afterEach(_afterEach)
 })

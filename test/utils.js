@@ -94,12 +94,11 @@ class Dog extends Animal {
 }
 
 function _beforeEach (done) {
-  MonoDB.dbPath = '.dbTest'
-  exec('rm -rf .dbTest', done)
+  exec('rm -rf .database', done)
 }
 
 function _afterEach (done) {
-  exec('rm -rf .dbTest', done)
+  exec('rm -rf .database', done)
 }
 
 module.exports = {
