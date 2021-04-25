@@ -161,7 +161,8 @@ describe('Test MonoDB', function() {
         });
 
         afterEach(function(done) {
-            exec("rm -rf .dbTest", done);
+            // exec("rm -rf .dbTest", done);
+            done();
         });
     });
 
@@ -407,7 +408,8 @@ describe('Test MonoDB', function() {
         });
 
         afterEach(function (done) {
-            exec("rm -rf .dbTest", done);
+            // exec("rm -rf .dbTest", done);
+            done();
         });
     });
 
@@ -487,7 +489,8 @@ describe('Test MonoDB', function() {
 
         afterEach(function (done) {
             // done();
-            exec("rm -rf .dbTest", done);
+            // exec("rm -rf .dbTest", done);
+            done();
         });
     });
 
@@ -524,7 +527,8 @@ describe('Test MonoDB', function() {
         });
 
         afterEach(function (done) {
-            exec("rm -rf .dbTest", done);
+            // exec("rm -rf .dbTest", done);
+            done();
         });
     });
 
