@@ -1,6 +1,6 @@
 {
   "name": "monodb",
-  "version": "1.4.2",
+  "version": "1.5",
   "description": "Simple storage system with no dependencies",
   "main": "index.js",
   "scripts": {
