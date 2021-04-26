@@ -1,14 +1,14 @@
 'use strict';
 
 class Mutex {
-  static #locks = {};
+  static #locks = {}
 
-  #pendings = undefined;
-  #isLocked = undefined;
+  #pendings = undefined
+  #isLocked = undefined
 
   constructor(key) {
-    this.#pendings = [];
-    this.#isLocked = false;
+    this.#pendings = []
+    this.#isLocked = false
   }
 
   /**
@@ -18,54 +18,54 @@ class Mutex {
   */
   static getLock(key) {
     if (!key) {
-      throw new Error('Key argument must be provided or must not be null or undefined');
+      throw new Error('Key argument must be provided or must not be null or undefined')
     }
 
     if (!this.#locks[key]) {
-      this.#locks[key] = new Mutex();
+      this.#locks[key] = new Mutex()
     }
 
-    return this.#locks[key];
+    return this.#locks[key]
   }
 
   lock(fn, call) {
     if (call) {
-      console.log('lock ' + call);
+      console.log('lock ' + call)
     }
 
     if (!(fn && fn instanceof Function)) {
-      throw new Error('First param must be a function');
+      throw new Error('First param must be a function')
     }
 
     if (this.#isLocked) {
       // Add fn to queue
-      this.#pendings.push(fn);
+      this.#pendings.push(fn)
     } else {
-      this.#isLocked = true;
-      return fn(this.unlock.bind(this));
+      this.#isLocked = true
+      return fn(this.unlock.bind(this))
     }
   }
 
   unlock(call) {
     if (call) {
-      console.log('unlock ' + call);
+      console.log('unlock ' + call)
     }
 
     if (this.#isLocked) {
       if (this.#pendings.length > 0) {
-        let fn = this.#pendings.shift();
-        return fn(this.unlock.bind(this));
+        let fn = this.#pendings.shift()
+        return fn(this.unlock.bind(this))
       } else {
-        this.#isLocked = false;
+        this.#isLocked = false
       }
     } else {
-      throw new Error('unlock must call only after lock');
+      throw new Error('unlock must call only after lock')
     }
   }
 
   isLocked() {
-    return this.#isLocked;
+    return this.#isLocked
   }
 }
 
-module.exports = Mutex;
+module.exports = Mutex
